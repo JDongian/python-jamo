@@ -23,14 +23,14 @@ class TestJamo(unittest.TestCase):
     """
     def test_jamo_to_hangul(self):
         """Functional test for jamo_to_hangul using hardcoded test cases."""
-        test_cases = [(13, 1, 0),
-                      (7, 9, 0),
-                      (19, 1, 4),
-                      (1, 19, 8),
-                      (10, 5, 0),
-                      (12, 14, 8),
-                      (18, 7, 21),
-                      (12, 3, 21)]
+        test_cases = [(0x110c, 0x1161, 0),
+                      (0x1106, 0x1169, 0),
+                      (0x1112, 0x1161, 0x11ab),
+                      (0x1100, 0x1173, 0x11af),
+                      (0x1109, 0x1165, 0),
+                      (0x110b, 0x116e, 0x11af),
+                      (0x1111, 0x1167, 0x11bc),
+                      (0x110b, 0x1163, 0x11bc)]
         desired_hangul = ["자",
                           "모",
                           "한",
@@ -61,23 +61,23 @@ class TestJamo(unittest.TestCase):
                       "울",
                       "평",
                       "양"]
-        desired_jamo = [(0x110c, 0x1161, 0),
-                        (0x1106, 0x1169, 0),
-                        (0x1112, 0x1161, 0x11ab),
-                        (0x1100, 0x1173, 0x11af),
-                        (0x1109, 0x1165, 0),
-                        (0x110b, 0x116e, 0x11af),
-                        (0x1111, 0x1167, 0x11bc),
-                        (0x110b, 0x1163, 0x11bc)]
+        desired_jamo = [(chr(0x110c), chr(0x1161), chr(0)),
+                        (chr(0x1106), chr(0x1169), chr(0)),
+                        (chr(0x1112), chr(0x1161), chr(0x11ab)),
+                        (chr(0x1100), chr(0x1173), chr(0x11af)),
+                        (chr(0x1109), chr(0x1165), chr(0)),
+                        (chr(0x110b), chr(0x116e), chr(0x11af)),
+                        (chr(0x1111), chr(0x1167), chr(0x11bc)),
+                        (chr(0x110b), chr(0x1163), chr(0x11bc))]
         for hangul, target in zip(test_cases, desired_jamo):
             assert target == jamo.hangul_to_jamo(hangul),\
                 ("Incorrect conversion from "
                  "{hangul} to "
                  "({lead}, {vowel}, {tail}). "
-                 "Got {failure}.").format(lead=target[0],
-                                          vowel=target[1],
-                                          tail=target[2],
-                                          hangul=hangul,
+                 "Got {failure}.").format(hangul=hangul,
+                                          lead=hex(target[0]),
+                                          vowel=hex(target[1]),
+                                          tail=hex(target[2]),
                                           failure=jamo.hangul_to_jamo(hangul))
 
     def test_get_jamo_class(self):

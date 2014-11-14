@@ -17,14 +17,30 @@ make this library fill the niche, in case someone may find this work useful.
 Installation
 ------------
 
-It's pre-alpha... take what you can salvage.
-pip when beta.
+Install from `pypi <https://pypi.python.org/pypi/jamo/0.1>`_::
+
+   $ pip install jamo
 
 
-Usage
------
+Examples
+--------
 
-Documentation on ReadTheDocs, soon<sup>TM</sup>.
+Hangul syllables can be decomposed and sythesised using jamo::
+
+   >>> from jamo import jamo
+   >>> lead, vowel, tail = jamo.hangul_to_jamo("한")
+   >>> print((lead, vowel, tail))
+   (4370, 4449, 4523)
+   >>> print(''.join([jamo.jamo_to_hcj(_) for _ in (lead, vowel, tail)]))
+   ㅎㅏㄴ
+   >>> print(jamo.jamo_to_hangul(lead, vowel, tail))
+   한
+
+
+Documentation
+-------------
+
+Documentation on ReadTheDocs coming soon.
 
 
 Contributing

@@ -1,6 +1,6 @@
 """Syllable and jamo analysis for Korean. Default exchange form is Hangul
-characters, not codepoints. jamo exchange form is U+11xx codepoints, not
-Hangul Compatibility Jamo (HCJ) codepoints U+3xxx or characters.
+characters, not codepoints. jamo exchange form is U+11xx characters, not
+U+3xxx Hangul Compatibility Jamo (HCJ) characters or codepoints.
 
 For more information, see:
 http://gernot-katzers-spice-pages.com/var/korean_hangul_unicode.html
@@ -8,6 +8,9 @@ http://gernot-katzers-spice-pages.com/var/korean_hangul_unicode.html
 from sys import stderr
 
 JAMO_OFFSET = 44032
+JAMO_LEAD_OFFSET = 0x10ff
+JAMO_VOWEL_OFFSET = 0x1160
+JAMO_TAIL_OFFSET = 0x11a7
 JAMO_TRANSLATIONS = {ord(jamo): hcj for jamo, hcj in\
         zip("ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ"
             "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
@@ -24,18 +27,30 @@ class InvalidJamoError(Exception):
         print("Could not parse jamo: U+{code}".format(code=self.jamo[2:]),
               file=stderr)
 
+def _to_codepoint(character):
+    """Accept a Unicode character or integer and return a codepoint."""
+    if type(character) == int:
+        return character
+    else:
+        return ord(character)
+
 def jamo_to_hangul(lead, vowel, tail=0):
-    """Return the Hangul character for the given jamo parts."""
-    # TODO: allow non-index input i.e. HCJ and 0x11XX jamo.
+    """Return the Hangul character for the given jamo characters."""
+    # TODO: Allow HCJ input.
+    lead = _to_codepoint(lead) - JAMO_LEAD_OFFSET
+    vowel = _to_codepoint(vowel) - JAMO_VOWEL_OFFSET
+    tail = _to_codepoint(tail) - JAMO_TAIL_OFFSET if tail else 0
     return chr(tail + (vowel-1)*28 + (lead-1)*588 + JAMO_OFFSET)
 
 def hangul_to_jamo(syllable):
-    """Return a 3-tuple of lead, vowel, and tail jamo."""
+    """Return a 3-tuple of lead, vowel, and tail jamo characters."""
     rem = ord(syllable) - JAMO_OFFSET
     tail = rem % 28
     vowel = 1 + ((rem - tail) % 588)//28
     lead = 1 + rem//588
-    return lead + 0x10ff, vowel + 0x1160, tail + 0x11a7 if tail else 0
+    return (chr(lead + JAMO_LEAD_OFFSET),
+            chr(vowel + JAMO_VOWEL_OFFSET),
+            chr(tail + JAMO_TAIL_OFFSET if tail else 0))
 
 def get_jamo_class(jamo):
     """Determine if a jamo is a lead, vowel, or tail.
@@ -45,6 +60,7 @@ def get_jamo_class(jamo):
     if type(jamo) == str:
         jamo = ord(jamo)
     # TODO: Stricter jamo constraint checking (not all in range are valid).
+    # Perhaps raise an error for U+3xxx jamo.
     if 0x1100 <= jamo <= 0x1112:
         return "lead"
     if 0x1161 <= jamo <= 0x1175:
