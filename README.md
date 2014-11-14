@@ -4,7 +4,7 @@ python-jamo
 python-jamo is a Python Hangul syllable decomposition and sythesis library
 for working with Hangul characters and jamo (U+11xx).
 
-Currently in pre-alpha, only modern Hangul is supported
+Currently in early release, only modern Hangul is currently supported
 (no U+317x, ㆀ, ㆄ, or other archaic stuff).
 Support for archaic Hangul will probably be added in the future (read: never).
 
@@ -24,7 +24,7 @@ pip when beta.
 Usage
 -----
 
-Documentation on ReadTheDocs, soon.
+Documentation on ReadTheDocs, soon<sup>TM</sup>.
 
 
 Contributing

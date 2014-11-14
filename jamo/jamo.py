@@ -1,5 +1,5 @@
 """Syllable and jamo analysis for Korean. Default exchange form is Hangul
-characters, not codepoints. Jamo exchange form is U+11xx codepoints, not
+characters, not codepoints. jamo exchange form is U+11xx codepoints, not
 Hangul Compatibility Jamo (HCJ) codepoints U+3xxx or characters.
 
 For more information, see:
@@ -8,6 +8,13 @@ http://gernot-katzers-spice-pages.com/var/korean_hangul_unicode.html
 from sys import stderr
 
 JAMO_OFFSET = 44032
+JAMO_TRANSLATIONS = {ord(jamo): hcj for jamo, hcj in\
+        zip("ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ"
+            "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
+            "ᆨᆩᆪᆫᆬᆭᆮᆯᆰᆱᆲᆳᆴᆵᆶᆷᆸᆹᆺᆻᆼᆽᆾᆿᇀᇁᇂ",
+            "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
+            "ㅏㅐㅑㅒㅓㅔㅓㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
+            "ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ")}
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
@@ -52,12 +59,4 @@ def jamo_to_hcj(jamo):
     # Allow single character strings, autoconverting to a codepoint.
     if type(jamo) == str:
         jamo = ord(jamo)
-    syllable_class = get_jamo_class(jamo)
-    if syllable_class == "lead":
-        # TODO: implement
-        return None
-    if syllable_class == "vowel":
-        return jamo + (ord("ㅏ") - 0x1161)
-    if syllable_class == "tail":
-        # TODO: implement
-        return None
+    return JAMO_TRANSLATIONS.get(jamo)

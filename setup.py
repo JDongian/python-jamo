@@ -20,7 +20,6 @@ setup(
     author_email="jdong42@gmail.com",
     license="http://www.apache.org/licenses/LICENSE-2.0",
     classifiers=[
-        "Development Status :: 4 - Beta",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.2",

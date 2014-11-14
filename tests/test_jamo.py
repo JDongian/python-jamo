@@ -1,8 +1,8 @@
-"""Unit tests for Hangul -> Jamo toolkit.
+"""Unit tests for functional tests on Hangul <-> jamo toolkit.
 """
 import random
 import unittest
-import jamo
+from jamo import jamo
 import sys
 import io
 
@@ -18,8 +18,8 @@ def get_random_hangul(count=20*22*27):
     return random.sample(syllables, count)
 
 class TestJamo(unittest.TestCase):
-    """Test Hangul syllable decomposition into Jamo and
-    transformations into Hangul Compatibility Jamo.
+    """Test Hangul syllable decomposition into jamo and
+    transformations into Hangul Compatibility jamo.
     """
     def test_jamo_to_hangul(self):
         """Functional test for jamo_to_hangul using hardcoded test cases."""
@@ -52,7 +52,7 @@ class TestJamo(unittest.TestCase):
                                           failure=trial)
 
     def test_hangul_to_jamo(self):
-        """Functional test for jamo_to_hangul using hardcoded test cases."""
+        """Functional test for hangul_to_jamo using hardcoded test cases."""
         test_cases = ["자",
                       "모",
                       "한",
@@ -86,7 +86,7 @@ class TestJamo(unittest.TestCase):
         """
         # All valid leads in modern Hangul.
         test_leads = "ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ"
-        # All valid vowelsin modern Hangul.
+        # All valid vowels in modern Hangul.
         test_vowels = "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
         # All valid tails in modern Hangul.
         test_tails = "ᆨᆩᆪᆫᆬᆭᆮᆯᆰᆱᆲᆳᆴᆵᆶᆷᆸᆹᆺᆻᆼᆽᆾᆿᇀᇁᇂ"
@@ -113,7 +113,7 @@ class TestJamo(unittest.TestCase):
         for invalid in range(10):
             try:
                 jamo.get_jamo_class(invalid)
-                assert False, "Did not catch invalid Jamo."
+                assert False, "Did not catch invalid jamo."
             except jamo.InvalidJamoError:
                 pass
         jamo.stderr = _stderr
@@ -123,7 +123,7 @@ class TestJamo(unittest.TestCase):
         # All valid leads in modern Hangul.
         test_leads = "ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ"
         hcj_leads = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
-        # All valid vowelsin modern Hangul.
+        # All valid vowels in modern Hangul.
         test_vowels = "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
         hcj_vowels = "ㅏㅐㅑㅒㅓㅔㅓㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
         # All valid tails in modern Hangul.
@@ -133,8 +133,10 @@ class TestJamo(unittest.TestCase):
             hcj_lead = jamo.jamo_to_hcj(lead)
             assert target == hcj_lead,\
                 ("Matched {lead} "
-                 "to {hcj_lead}").format(lead=hex(ord(lead)),
-                                         hcj_lead=hcj_lead)
+                 "to {hcj_lead}, "
+                 "wanted {target}").format(lead=hex(ord(lead)),
+                                           hcj_lead=hcj_lead,
+                                           target=target)
         for vowel, target in zip(test_vowels, hcj_vowels):
             hcj_vowel = jamo.jamo_to_hcj(vowel)
             assert target == hcj_vowel,\
@@ -152,7 +154,7 @@ class TestJamo(unittest.TestCase):
         for invalid in range(10):
             try:
                 jamo.get_jamo_class(invalid)
-                assert False, "Did not catch invalid Jamo."
+                assert False, "Did not catch invalid jamo."
             except jamo.InvalidJamoError:
                 pass
         jamo.stderr = _stderr
