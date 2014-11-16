@@ -16,7 +16,7 @@ phonetic and spelling analysis.
 Installation
 ------------
 
-Install from `pypi <https://pypi.python.org/pypi/jamo/0.1>`_::
+Install from `pypi <https://pypi.python.org/pypi/jamo>`_::
 
    $ pip install jamo
 
