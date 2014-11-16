@@ -8,10 +8,9 @@ Currently in early release, only modern Hangul is currently supported
 (no U+317x, ㆀ, ㆄ, or other archaic stuff).
 Support for archaic Hangul will probably be added in the future (read: never).
 
-Originally designed to help students identify difficult-to-spell
-words containing (ㅔ,ㅐ) or (ㅗ,ㅜ), I found very little in the realm of
-open-source Korean language analysis python libraries. Thus, I decided to
-make this library fill the niche, in case someone may find this work useful.
+Originally designed to help students identify difficult-to-spell words
+containing (ㅔ,ㅐ) or (ㅗ,ㅜ), this project hopes to fill the niche of Korean
+phonetic and spelling analysis.
 
 
 Installation
@@ -29,7 +28,7 @@ Hangul syllables can be decomposed and sythesised using jamo::
 
    >>> from jamo import jamo
    >>> lead, vowel, tail = jamo.hangul_to_jamo("한")
-   >>> print((lead, vowel, tail))
+   >>> print((ord(lead), ord(vowel), ord(tail)))
    (4370, 4449, 4523)
    >>> print(''.join([jamo.jamo_to_hcj(_) for _ in (lead, vowel, tail)]))
    ㅎㅏㄴ
