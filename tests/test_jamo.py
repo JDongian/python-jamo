@@ -21,6 +21,15 @@ class TestJamo(unittest.TestCase):
     """Test Hangul syllable decomposition into jamo and
     transformations into Hangul Compatibility jamo.
     """
+    def test_is_hangul(self):
+        """Functional test for _is_hangul internal validation function."""
+        for _ in "가나다한글한극어힣":
+            assert jamo._is_hangul(_),\
+                "Did not correctly validate {} as Hangul.".format(_)
+        for _ in "ㄱㄴㅓhello ᆩᆪᆫᆬguys":
+            assert not jamo._is_hangul(_),\
+                "Did not correctly validate {} as not Hangul.".format(_)
+
     def test_jamo_to_hangul(self):
         """Functional test for jamo_to_hangul using hardcoded test cases."""
         test_cases = [(0x110c, 0x1161, 0),
@@ -158,6 +167,19 @@ class TestJamo(unittest.TestCase):
             except jamo.InvalidJamoError:
                 pass
         jamo.stderr = _stderr
+
+    def test_string_to_jamo(self):
+        test_cases = ["",
+                      "no Hangul",
+                      "Some 한글",
+                      "만한글"]
+        target_strings = ["",
+                          "no Hangul",
+                          "Some ㅎㅏㄴㄱㅡㄹ",
+                          "ㅁㅏㄴㅎㅏㄴㄱㅡㄹ"]
+        for test, target in zip(test_cases, target_strings):
+            assert jamo.string_to_jamo(test) == target,\
+                "Incorrectly transformed '{}' into '{}'.".format(test, target)
 
 if __name__ == "__main__":
     unittest.main()

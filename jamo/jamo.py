@@ -34,6 +34,10 @@ def _to_codepoint(character):
     else:
         return ord(character)
 
+def _is_hangul(character):
+    """Determine if a given unicode character is Hangul."""
+    return ord(character) in range(0xAC00, 0xD7A4)
+
 def jamo_to_hangul(lead, vowel, tail=0):
     """Return the Hangul character for the given jamo characters."""
     # TODO: Allow HCJ input.
@@ -76,3 +80,11 @@ def jamo_to_hcj(jamo):
     if type(jamo) == str:
         jamo = ord(jamo)
     return JAMO_TRANSLATIONS.get(jamo)
+
+def string_to_jamo(string):
+    """Convert a string into hcj as much as possible."""
+    return ''.join([''.join(jamo_to_hcj(u11xx_jamo) for\
+                            u11xx_jamo in hangul_to_jamo(_))\
+                    if _is_hangul(_) else _\
+                    for _ in string])
+
