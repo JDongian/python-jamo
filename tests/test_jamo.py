@@ -69,7 +69,9 @@ class TestJamo(unittest.TestCase):
                       "서",
                       "울",
                       "평",
-                      "양"]
+                      "양",
+                      "한굴",
+                      "Do you speak 한국어?"]
         desired_jamo = [(chr(0x110c), chr(0x1161), chr(0)),
                         (chr(0x1106), chr(0x1169), chr(0)),
                         (chr(0x1112), chr(0x1161), chr(0x11ab)),
@@ -77,17 +79,24 @@ class TestJamo(unittest.TestCase):
                         (chr(0x1109), chr(0x1165), chr(0)),
                         (chr(0x110b), chr(0x116e), chr(0x11af)),
                         (chr(0x1111), chr(0x1167), chr(0x11bc)),
-                        (chr(0x110b), chr(0x1163), chr(0x11bc))]
+                        (chr(0x110b), chr(0x1163), chr(0x11bc)),
+                        (chr(0x1112), chr(0x1161), chr(0x11ab),
+                         chr(0x1100), chr(0x116e), chr(0x11af)),
+                        tuple(_ for _ in "Do you speak ") +\
+                        (chr(0x1112), chr(0x1161), chr(0x11ab),
+                         chr(0x1100), chr(0x116e), chr(0x11a8),
+                         chr(0x110b), chr(0x1165), chr(0)) + ('?',),]
         for hangul, target in zip(test_cases, desired_jamo):
-            assert target == jamo.hangul_to_jamo(hangul),\
+            trial = tuple(jamo.hangul_to_jamo(hangul))
+            assert target == trial,\
                 ("Incorrect conversion from "
                  "{hangul} to "
                  "({lead}, {vowel}, {tail}). "
                  "Got {failure}.").format(hangul=hangul,
-                                          lead=hex(target[0]),
-                                          vowel=hex(target[1]),
-                                          tail=hex(target[2]),
-                                          failure=jamo.hangul_to_jamo(hangul))
+                                          lead=hex(ord(target[0])),
+                                          vowel=hex(ord(target[1])),
+                                          tail=hex(ord(target[2])),
+                                          failure=trial)
 
     def test_get_jamo_class(self):
         """Functional test for determining the class of jamo. Tests all
@@ -167,19 +176,6 @@ class TestJamo(unittest.TestCase):
             except jamo.InvalidJamoError:
                 pass
         jamo.stderr = _stderr
-
-    def test_string_to_jamo(self):
-        test_cases = ["",
-                      "no Hangul",
-                      "Some 한글",
-                      "만한글"]
-        target_strings = ["",
-                          "no Hangul",
-                          "Some ㅎㅏㄴㄱㅡㄹ",
-                          "ㅁㅏㄴㅎㅏㄴㄱㅡㄹ"]
-        for test, target in zip(test_cases, target_strings):
-            assert jamo.string_to_jamo(test) == target,\
-                "Incorrectly transformed '{}' into '{}'.".format(test, target)
 
 if __name__ == "__main__":
     unittest.main()

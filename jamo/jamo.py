@@ -6,6 +6,7 @@ For more information, see:
 http://gernot-katzers-spice-pages.com/var/korean_hangul_unicode.html
 """
 from sys import stderr
+from itertools import chain
 
 JAMO_OFFSET = 44032
 JAMO_LEAD_OFFSET = 0x10ff
@@ -35,10 +36,38 @@ def _to_codepoint(character):
         return ord(character)
 
 def _is_hangul(character):
-    """Determine if a given unicode character is Hangul."""
+    """Determine if a given unicode character is Hangul.
+    Note: does not support old-style Hangul.
+    """
     return ord(character) in range(0xAC00, 0xD7A4)
 
-def jamo_to_hangul(lead, vowel, tail=0):
+def _hangul_char_to_jamo(syllable):
+    """Return a 3-tuple of lead, vowel, and tail jamo characters.
+    Note: Non-Hangul characters are echoed back.
+    """
+    if _is_hangul(syllable):
+        rem = ord(syllable) - JAMO_OFFSET
+        tail = rem % 28
+        vowel = 1 + ((rem - tail) % 588)//28
+        lead = 1 + rem//588
+        return (chr(lead + JAMO_LEAD_OFFSET),
+                chr(vowel + JAMO_VOWEL_OFFSET),
+                chr(tail + JAMO_TAIL_OFFSET if tail else 0))
+    else:
+        return syllable
+
+def _hcj_to_jamo(hcj_char, position="vowel"):
+    """Convert HCJ to jamo based on the intended position."""
+    # TODO: Implement this.
+    if position == "lead":
+        return hcj_char
+    elif position == "vowel":
+        return hcj_char
+    elif position == "tail":
+        return hcj_char
+    raise InvalidJamoError
+
+def _jamo_to_hangul_char(lead, vowel, tail=0):
     """Return the Hangul character for the given jamo characters."""
     # TODO: Allow HCJ input.
     lead = _to_codepoint(lead) - JAMO_LEAD_OFFSET
@@ -46,15 +75,21 @@ def jamo_to_hangul(lead, vowel, tail=0):
     tail = _to_codepoint(tail) - JAMO_TAIL_OFFSET if tail else 0
     return chr(tail + (vowel-1)*28 + (lead-1)*588 + JAMO_OFFSET)
 
-def hangul_to_jamo(syllable):
-    """Return a 3-tuple of lead, vowel, and tail jamo characters."""
-    rem = ord(syllable) - JAMO_OFFSET
-    tail = rem % 28
-    vowel = 1 + ((rem - tail) % 588)//28
-    lead = 1 + rem//588
-    return (chr(lead + JAMO_LEAD_OFFSET),
-            chr(vowel + JAMO_VOWEL_OFFSET),
-            chr(tail + JAMO_TAIL_OFFSET if tail else 0))
+def jamo_to_hcj(jamo):
+    """Change a single jamo codepoint to a HCJ codepoint."""
+    # TODO: Allow non-jamo characters to pass without failing.
+    jamo = (ord(_) if type(_) == str else _ for _ in jamo)
+    return ''.join(JAMO_TRANSLATIONS.get(_) for _ in jamo)
+
+def jamo_to_hangul(lead, vowel, tail=0):
+    """Return the Hangul character for the given jamo characters."""
+    # TODO: Allow HCJ input.
+    # TODO: Implement string input.
+    return _jamo_to_hangul_char(lead, vowel, tail)
+
+def hangul_to_jamo(hangul_string):
+    """Convert a string of Hangul to jamo."""
+    return chain.from_iterable(_hangul_char_to_jamo(_) for _ in hangul_string)
 
 def get_jamo_class(jamo):
     """Determine if a jamo is a lead, vowel, or tail.
@@ -63,28 +98,16 @@ def get_jamo_class(jamo):
     # Allow single character strings, autoconverting to a codepoint.
     if type(jamo) == str:
         jamo = ord(jamo)
-    # TODO: Stricter jamo constraint checking (not all in range are valid).
-    # Perhaps raise an error for U+3xxx jamo.
-    if 0x1100 <= jamo <= 0x1112:
+    # Perhaps raise a separate error for U+3xxx jamo.
+    if chr(jamo) in "ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ":
         return "lead"
-    if 0x1161 <= jamo <= 0x1175:
+    if chr(jamo) in "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ":
         return "vowel"
-    if 0x11a8 <= jamo <= 0x11c2:
+    if chr(jamo) in "ᆨᆩᆪᆫᆬᆭᆮᆯᆰᆱᆲᆳᆴᆵᆶᆷᆸᆹᆺᆻᆼᆽᆾᆿᇀᇁᇂ":
         return "tail"
     else:
         raise InvalidJamoError("Could not not determine jamo class.", jamo)
 
-def jamo_to_hcj(jamo):
-    """Change a jamo codepoint to a HCJ codepoint (better for display)."""
-    # Allow single character strings, autoconverting to a codepoint.
-    if type(jamo) == str:
-        jamo = ord(jamo)
-    return JAMO_TRANSLATIONS.get(jamo)
-
-def string_to_jamo(string):
-    """Convert a string into hcj as much as possible."""
-    return ''.join([''.join(jamo_to_hcj(u11xx_jamo) for\
-                            u11xx_jamo in hangul_to_jamo(_))\
-                    if _is_hangul(_) else _\
-                    for _ in string])
-
+def string_to_hcj(string):
+    """Convert jamo characters in a string into hcj as much as possible."""
+    return ''.join([''.join(''.join(jamo_to_hcj(_)) for _ in string)])
