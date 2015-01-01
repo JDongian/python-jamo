@@ -11,9 +11,6 @@ _JAMO_TO_HANGUL_WORKS = False
 def _get_random_hangul(count=20*22*27):
     """Generate a sequence of random, unique, valid Hangul characters.
     Returns all possible modern Hangul characters by default.
-
-    NOTE: Relies on jamo.jamo_to_hangul; ensure the function is tested before
-    this is called!
     """
     if JAMO_TO_HANGUL_WORKS:
         syllables = [jamo.jamo_to_hangul(lead, vowel, tail)\
@@ -28,9 +25,6 @@ def _get_random_hangul(count=20*22*27):
 def _get_random_hangul_complete(count=20*22*27):
     """Generate a sequence of random, unique, valid Hangul characters.
     Returns all possible Hangul characters by default.
-
-    NOTE: Relies on jamo.jamo_to_hangul; ensure the function is tested before
-    this is called!
     """
     if JAMO_TO_HANGUL_WORKS:
         raise NotImplementedError
@@ -39,12 +33,12 @@ def _get_random_hangul_complete(count=20*22*27):
 
 
 class TestJamo(unittest.TestCase):
-    """Test Hangul syllable decomposition into jamo and
-    transformations into Hangul Compatibility jamo.
+    """Test Hangul syllable decomposition into jamo and transformations into
+    Hangul Compatibility jamo.
     """
 
     def test_is_hangul_char(self):
-        """Functional test for is_hangul_char validation function using hardcoded cases."""
+        """Functional test for is_hangul_char using hardcoded test cases."""
 
         for _ in "가나다한글한극어힣":
             assert jamo._is_hangul(_),\
@@ -105,20 +99,28 @@ class TestJamo(unittest.TestCase):
 
 
     def test_j2h(self):
+        """Functional test for j2h using hardcoded test cases.
+        Arguments may be integers corresponding to the U+11xx codepoints, the
+        actual U+11xx jamo characters, or HCJ.
+
+        Outputs a one-character Hangul string.
+
+        This function is defined solely for naming conisistency with
+        jamo_to_hangul.
+        """
+
         assert _JAMO_TO_HANGUL_WORKS, "j2h doesn't work. "
                                       "Make sure jamo_to_hangul works first."
 
 
     def test_hangul_to_jamo(self):
         """Functional test for hangul_to_jamo using hardcoded test cases.
-        Arguments may be integers corresponding to the U+11xx codepoints, the
-        actual U+11xx jamo characters, or HCJ.
+        Arguments may be iterables of characters.
 
         hangul_to_jamo should split every Hangul character into U+11xx jamo
         for any given string. Non-hangul characters are not touched.
 
-        hangul_to_jamo() is the generator version; h2j() does the same thing
-        but returns a string.
+        hangul_to_jamo() is the generator version of h2j(), the string version.
         """
 
         test_cases = ["자",
@@ -146,8 +148,10 @@ class TestJamo(unittest.TestCase):
                          chr(0x1100), chr(0x116e), chr(0x11a8),
                          chr(0x110b), chr(0x1165), chr(0)) + ('?',),]
         for hangul, target in zip(test_cases, desired_jamo):
-            trial = tuple(jamo.hangul_to_jamo(hangul))
-            assert target == trial,\
+            trial = jamo.hangul_to_jamo(hangul)
+            assert trial.__name__ = "<genexpr>", "hangul_to_jamo didn't return"
+                                                 "an instance of a generator."
+            assert target == tuple(trial),\
                 ("Incorrect conversion from "
                  "{hangul} to "
                  "({lead}, {vowel}, {tail}). "
@@ -155,10 +159,19 @@ class TestJamo(unittest.TestCase):
                                           lead=hex(ord(target[0])),
                                           vowel=hex(ord(target[1])),
                                           tail=hex(ord(target[2])),
-                                          failure=trial)
+                                          failure=[hex(_) for _ in trial])
 
 
     def test_h2j(self):
+        """Functional test for h2j using hardcoded test cases.
+        Arguments may be iterables of characters.
+
+        h2j should split every Hangul character into U+11xx jamo for any given
+        string. Non-hangul characters are not touched.
+
+        h2j() is the string version of hangul_to_jamo(), the generator version.
+        """
+
         raise NotImplementedError
 
 
@@ -178,6 +191,9 @@ class TestJamo(unittest.TestCase):
         test_vowels = "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
         # All valid tails in modern Hangul.
         test_tails = "ᆨᆩᆪᆫᆬᆭᆮᆯᆰᆱᆲᆳᆴᆵᆶᆷᆸᆹᆺᆻᆼᆽᆾᆿᇀᇁᇂ"
+
+        # Archaic jamo
+        raise NotImplementedError
 
         # Test characters
         for lead in test_leads:
@@ -212,21 +228,15 @@ class TestJamo(unittest.TestCase):
         raise NotImplementedError
 
 
-    def test_get_jamo_class_extended(self):
-        # Figure out how to implement this without duplicating too much code.
-        raise NotImplementedError
-
-
     def test_jamo_to_hcj(self):
         """Functional test verifying correctness of jamo to HCJ translation.
-        Arguments may be integers corresponding to the U+11xx codepoints, the
-        actual U+11xx jamo characters, or HCJ.
+        Arguments may be integers corresponding to U+11xx codepoints, actual
+        U+11xx jamo characters, or HCJ characters. These may be in an iterable.
 
         jamo_to_hcj should convert every U+11xx jamo character into U+31xx HCJ
         in a given string. Non-hangul and HCJ characters are not touched.
 
-        jamo_to_hcj() is the generator version; j2hcj() does the same thing
-        but returns a string.
+        jamo_to_hcj() is the generator version of j2hcj(), the string version.
         """
 
         # All valid leads in modern Hangul.
@@ -244,26 +254,52 @@ class TestJamo(unittest.TestCase):
         # Archaic jamo
         raise NotImplementedError
 
+        # Test U+11xx characters.
         for lead, target in zip(test_leads, hcj_leads):
             hcj_lead = jamo.jamo_to_hcj(lead)
-            assert target == hcj_lead,\
+            assert hcj_lead.__name__ = "<genexpr>", "hangul_to_jamo didn't"
+                                                    "return an instance of a"
+                                                    "generator."
+            assert target == ''.join(hcj_lead),\
                 ("Matched {lead} "
                  "to {hcj_lead}, "
-                 "wanted {target}").format(lead=hex(ord(lead)),
-                                           hcj_lead=hcj_lead,
-                                           target=target)
+                 "wanted {target}.").format(lead=hex(ord(lead)),
+                                            hcj_lead=''.join(hcj_lead),
+                                            target=target)
         for vowel, target in zip(test_vowels, hcj_vowels):
             hcj_vowel = jamo.jamo_to_hcj(vowel)
-            assert target == hcj_vowel,\
+            assert hcj_vowel.__name__ = "<genexpr>", "hangul_to_jamo didn't"
+                                                     "return an instance of a"
+                                                     "generator."
+            assert target == ''.join(hcj_vowel),\
                 ("Matched {vowel} "
-                 "to {hcj_vowel}").format(vowel=hex(ord(vowel)),
-                                          hcj_vowel=hcj_vowel)
+                 "to {hcj_vowel}, "
+                 "wanted {target}.").format(vowel=hex(ord(vowel)),
+                                            hcj_vowel=''.join(hcj_vowel),
+                                            target=target)
         for tail, target in zip(test_tails, hcj_tails):
-            hcj_tail = jamo.jamo_to_hcj(tail)
-            assert target == hcj_tail,\
+            hcj_tail = jamo.jamo_to_hcj(vowel)
+            assert hcj_tail.__name__ = "<genexpr>", "hangul_to_jamo didn't"
+                                                    "return an instance of a"
+                                                    "generator."
+            assert target == ''.join(hcj_tail),\
                 ("Matched {tail} "
-                 "to {hcj_tail}").format(tail=hex(ord(tail)),
-                                         hcj_tail=hcj_tail)
+                 "to {hcj_tail}, "
+                 "wanted {target}.").format(tail=hex(ord(vowel)),
+                                            hcj_tail=''.join(hcj_vowel),
+                                            target=target)
+
+        # Test U+11xx integers.
+        raise NotImplementedError
+
+        # Test HCJ characters.
+        raise NotImplementedError
+
+        # Test strings and iterables of mixed types.
+        # Note: 'integers' in strings don't get converted, of course.
+        raise NotImplementedError
+
+        # Negative tests
         _stderr = jamo.stderr
         jamo.stderr = io.StringIO()
         for invalid in range(10):
@@ -274,7 +310,18 @@ class TestJamo(unittest.TestCase):
                 pass
         jamo.stderr = _stderr
 
+
     def test_j2hcj(self):
+        """Functional test verifying correctness of jamo to HCJ translation.
+        Arguments may be integers corresponding to U+11xx codepoints, actual
+        U+11xx jamo characters, or HCJ characters. These may be in an iterable.
+
+        j2hcj should convert every U+11xx jamo character into U+31xx HCJ in a
+        given string. Non-hangul and HCJ characters are not touched.
+
+        j2hcj() is the string version of jamo_to_hcj(), the generator version.
+        """
+
         raise NotImplementedError
 
 
