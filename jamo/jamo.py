@@ -89,7 +89,8 @@ def jamo_to_hangul(lead, vowel, tail=0):
 
 def hangul_to_jamo(hangul_string):
     """Convert a string of Hangul to jamo."""
-    return chain.from_iterable(_hangul_char_to_jamo(_) for _ in hangul_string)
+    return (_ for _ in\
+            chain.from_iterable(_hangul_char_to_jamo(_) for _ in hangul_string))
 
 def get_jamo_class(jamo):
     """Determine if a jamo is a lead, vowel, or tail.
