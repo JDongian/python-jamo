@@ -1,10 +1,11 @@
-"""Syllable and jamo analysis for Korean. Default exchange form is Hangul
-characters, not codepoints. jamo exchange form is U+11xx characters, not
-U+3xxx Hangul Compatibility Jamo (HCJ) characters or codepoints.
+"""Syllable and jamo analysis for Korean. Default internal exchange form is
+Hangul characters, not codepoints. Jamo exchange form is U+11xx characters,
+not U+3xxx Hangul Compatibility Jamo (HCJ) characters or codepoints.
 
 For more information, see:
-http://gernot-katzers-spice-pages.com/var/korean_hangul_unicode.html
+http://python-jamo.readthedocs.org/ko/latest/
 """
+
 from sys import stderr
 from itertools import chain
 

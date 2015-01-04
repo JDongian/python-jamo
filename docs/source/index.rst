@@ -4,8 +4,8 @@
 A Guide to using Python-Jamo
 ============================
 
-*DISCLAIMER: This library is under development and is going through big
-changes. Read at your own risk.*
+*DISCLAIMER: This library is still in beta. Some features may not work as
+described.*
 
 `Hangul <https://en.wikipedia.org/wiki/Hangul>`_ is a wonderful writing system.
 Originating in 1443 to represent the Korean language, it is an alphabet of 24
@@ -30,7 +30,9 @@ That was easy! Notice that the characters may not have rendered correctly. This
 is because there are actually two sets of jamo in Unicode. We printed the
 U+11xx set. The set that computers actually use for *rendering* individual jamo
 characters is in U+31xx. To learn more, read more about `Hangul Compatibility
-Jamo` (here on referenced as HJC).
+Jamo` (here on referenced as HJC). Also related, Gernot Katzers has an
+excellent `writeup on Hangul representation in unicode
+<http://gernot-katzers-spice-pages.com/var/korean_hangul>`_ worth a read.
 
 Say we wanted to get the display characters::
 
