@@ -218,10 +218,9 @@ class TestJamo(unittest.TestCase):
         jamo_to_hangul.
         """
 
-        assert _JAMO_TO_HANGUL_WORKS,\
+        assert jamo.j2h('ㅎ', 'ㅏ') == "하",\
             ("j2h doesn't work. "
              "Hint: it's the same as jamo_to_hangul.")
-        assert jamo.j2h('ㅎ', 'ㅏ') == "하", "Something dun herped."
 
     def test_jamo_to_hcj(self):
         """jamo_to_hcj hardcoded tests.
@@ -240,7 +239,7 @@ class TestJamo(unittest.TestCase):
 
         # All valid vowels in modern Hangul.
         test_vowels = "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
-        hcj_vowels = "ㅏㅐㅑㅒㅓㅔㅓㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
+        hcj_vowels = "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
 
         # All valid tails in modern Hangul.
         test_tails = "ᆨᆩᆪᆫᆬᆭᆮᆯᆰᆱᆲᆳᆴᆵᆶᆷᆸᆹᆺᆻᆼᆽᆾᆿᇀᇁᇂ"
@@ -368,15 +367,11 @@ class TestJamo(unittest.TestCase):
         # Note: 'integers' in strings don't get converted, of course.
 
         # Negative tests
-        _stderr = jamo.stderr
-        jamo.stderr = io.StringIO()
         for invalid in range(10):
-            try:
-                jamo.jamo_to_hcj(invalid)
-                assert False, "Did not catch invalid jamo."
-            except jamo.InvalidJamoError:
-                pass
-        jamo.stderr = _stderr
+            result = [_ for _ in jamo.jamo_to_hcj(invalid)][0]
+            assert invalid == result,\
+                ("Did not handle non-jamo integer ({test}) properly, "
+                 "got: {result}").format(test=invalid, result=result)
 
     def test_j2hcj(self):
         """j2hcj hardcoded tests.
