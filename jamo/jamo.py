@@ -53,7 +53,6 @@ def _value_to_jamo(value, jamo_class=None):
         return value
     # If given a hcj char or hcj integer
     if _value in VALID_HCJ:
-        print("decoding hcj to jamo.")
         translations = {get_jamo_class(jamo): jamo for jamo, hcj in
                         JAMO_TO_HCJ_TRANSLATIONS.items() if hcj == _value}
         # TODO: Add a custom exception for KeyError.
@@ -109,14 +108,10 @@ def _jamo_to_hangul_char(lead, vowel, tail=0):
     lead = _to_codepoint(_value_to_jamo(lead, "lead"))
     vowel = _to_codepoint(_value_to_jamo(vowel, "vowel"))
     tail = _to_codepoint(_value_to_jamo(tail, "tail")) if tail else 0
-    print("_jamo_to_hangul_char called with: "
-          "({}), ({}), ({})".format(hex(lead), hex(vowel), hex(tail)))
-    print("({} ), ({} ), ({} )".format(chr(lead), chr(vowel), chr(tail)))
 
     lead -= JAMO_LEAD_OFFSET
     vowel -= JAMO_VOWEL_OFFSET
     tail = tail - JAMO_TAIL_OFFSET if tail else 0
-    print("calculated offsets: {}, {}, {}\n".format(lead, vowel, tail))
     return chr(tail + (vowel - 1) * 28 + (lead - 1) * 588 + JAMO_OFFSET)
 
 
