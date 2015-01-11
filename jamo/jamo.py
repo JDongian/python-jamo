@@ -173,7 +173,7 @@ def j2h(lead, vowel, tail=0):
     jamo_to_hangul.
     """
 
-    return jamo_to_hangul(lead, vowel, tail=0)
+    return jamo_to_hangul(lead, vowel, tail)
 
 
 def jamo_to_hcj(jamo):

@@ -218,6 +218,10 @@ class TestJamo(unittest.TestCase):
         jamo_to_hangul.
         """
 
+        assert jamo.j2h('ㅎ', 'ㅏ', 'ㄴ') == "한",\
+            ("j2h doesn't work. "
+             "Hint: it's the same as jamo_to_hangul.")
+
         assert jamo.j2h('ㅎ', 'ㅏ') == "하",\
             ("j2h doesn't work. "
              "Hint: it's the same as jamo_to_hangul.")
