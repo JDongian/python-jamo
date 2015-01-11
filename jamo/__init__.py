@@ -7,4 +7,4 @@ from .jamo import (is_hangul_char,
                    synth_hangul,
                    InvalidJamoError)
 
-__version__ = '0.3'
+__version__ = '0.3.1'
