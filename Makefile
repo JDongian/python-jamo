@@ -20,7 +20,7 @@ clean:
 	rm -rf build dist $(PROJECT).egg-info
 
 lint:
-	flake8 --ignore=E123,E501 $(PROJECT)
+	flake8 --ignore=E123,E501,F401 $(PROJECT)
 
 test:
 	nosetests --with-coverage --cover-package=$(PROJECT)

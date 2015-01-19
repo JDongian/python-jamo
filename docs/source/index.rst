@@ -126,4 +126,3 @@ Some example uses of jamo are shown below:
 
 
 .. _Hangul representation in unicode: http://gernot-katzers-spice-pages.com/var/korean_hangul_unicode.html
-
