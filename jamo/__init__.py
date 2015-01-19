@@ -1,4 +1,6 @@
-from .jamo import (is_hangul_char,
+from .jamo import (is_jamo, is_jamo_modern,
+                   is_hcj, is_hcj_modern,
+                   is_hangul_char,
                    get_jamo_class,
                    jamo_to_hangul, j2h,
                    jamo_to_hcj, j2hcj,

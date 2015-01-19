@@ -115,12 +115,47 @@ def _jamo_to_hangul_char(lead, vowel, tail=0):
     return chr(tail + (vowel - 1) * 28 + (lead - 1) * 588 + JAMO_OFFSET)
 
 
-def is_hangul_char(character):
-    """Determine if a given unicode character is Hangul.
-    Does not support old-style Hangul.
+def is_jamo(character):
+    """Test if a single character is a jamo character.
+    Valid jamo includes all modern and archaic jamo, as well as all HCJ.
+    Non-assigned code points are invalid.
     """
+    code = ord(character)
+    return 0x1100 <= code <= 0x11FF or\
+        0xA960 <= code <= 0xA97C or\
+        0xD7B0 <= code <= 0xD7C6 or 0xD7CB <= code <= 0xD7FB or\
+        is_hcj(character)
 
-    return ord(character) in range(0xAC00, 0xD7A4)
+
+def is_jamo_modern(character):
+    """Test if a single character is a modern jamo character.
+    Modern jamo includes all U+11xx jamo in addition to HCJ in modern usage,
+    as defined in Unicode 7.0.
+    """
+    return False
+
+
+def is_hcj(character):
+    """Test if a single character is a HCJ character.
+    HCJ is defined as the U+313x to U+318x block, sans two non-assigned code
+    points.
+    """
+    return 0x3131 <= ord(character) <= 0x318E and ord(character) != 0x3164
+
+
+def is_hcj_modern(character):
+    """Test if a single character is a modern HCJ character.
+    Modern HCJ is defined as HCJ that corresponds to a U+11xx jamo character
+    in modern usage.
+    """
+    return False
+
+
+def is_hangul_char(character):
+    """Test if a single character is in the U+AC00 to U+D7A3 code block,
+    excluding unassigned codes.
+    """
+    return 0xAC00 <= ord(character) <= 0xD7A3
 
 
 def get_jamo_class(jamo):

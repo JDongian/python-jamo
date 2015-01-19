@@ -41,7 +41,8 @@ class TestJamo(unittest.TestCase):
         # See http://www.unicode.org/charts/PDF/U1100.pdf
         valid_jamo = (chr(_) for _ in range(0x1100, 0x1200))
         # See http://www.unicode.org/charts/PDF/U3130.pdf
-        valid_hcj = (chr(_) for _ in range(0x3131, 0x318f))
+        valid_hcj = itertools.chain((chr(_) for _ in range(0x3131, 0x3164)),
+                                    (chr(_) for _ in range(0x3165, 0x318f)))
         # See http://www.unicode.org/charts/PDF/UA960.pdf
         valid_extA = (chr(_) for _ in range(0xa960, 0xa97d))
         # See http://www.unicode.org/charts/PDF/UD7B0.pdf
@@ -49,7 +50,7 @@ class TestJamo(unittest.TestCase):
                                      (chr(_) for _ in range(0xd7cb, 0xd7fc)))
 
         invalid_edge_cases = (chr(0x10ff), chr(0x1200),
-                              chr(0x3130), chr(0x318f),
+                              chr(0x3130), chr(0x3164), chr(0x318f),
                               chr(0xa95f), chr(0xa07d),
                               chr(0xd7af), chr(0xd7c7),
                               chr(0xd7ca), chr(0xd7fc))
@@ -61,14 +62,14 @@ class TestJamo(unittest.TestCase):
                                  valid_extA, valid_extB):
             assert jamo.is_jamo(_),\
                 ("Incorrectly decided U+{} "
-                 "was not jamo.").format(hex(_)[2:])
+                 "was not jamo.").format(hex(ord(_))[2:])
         # Negative tests
         for _ in itertools.chain(invalid_edge_cases,
                                  invalid_hangul,
                                  invalid_other):
             assert not jamo.is_jamo(_),\
                 ("Incorrectly decided U+{} "
-                 "was jamo.").format(hex(_)[2:])
+                 "was jamo.").format(hex(ord(_))[2:])
 
     def test_is_jamo_modern(self):
         """is_jamo_modern tests
@@ -93,26 +94,26 @@ class TestJamo(unittest.TestCase):
         for _ in itertools.chain(modern_jamo, modern_hcj):
             assert jamo.is_jamo_modern(_),\
                 ("Incorrectly decided U+{} "
-                 "was not modern jamo.").format(hex(_)[2:])
+                 "was not modern jamo.").format(hex(ord(_))[2:])
         # Negative tests
         for _ in itertools.chain(invalid_edge_cases,
                                  invalid_hangul,
                                  invalid_other):
             assert not jamo.is_jamo_modern(_),\
                 ("Incorrectly decided U+{} "
-                 "was modern jamo.").format(hex(_)[2:])
+                 "was modern jamo.").format(hex(ord(_))[2:])
 
     def test_is_hcj(self):
         """is_hcj tests
-        Test if a single character is a HCJ characterl
-        HCJ is defined as the U+313x to U+3138x block, sans two non-assigned
+        Test if a single character is a HCJ character.
+        HCJ is defined as the U+313x to U+318x block, sans two non-assigned
         code points.
         """
 
         # Note: The chaeum filler U+3164 is not considered HCJ, but a special
         # character as defined in http://www.unicode.org/charts/PDF/U3130.pdf.
         valid_hcj = itertools.chain((chr(_) for _ in range(0x3131, 0x3164)),
-                                    (chr(_) for _ in range(0x3134, 0x318f)))
+                                    (chr(_) for _ in range(0x3165, 0x318f)))
 
         invalid_edge_cases = (chr(0x3130), chr(0x3164), chr(0x318f))
         invalid_hangul = _get_random_hangul(20)
@@ -122,14 +123,14 @@ class TestJamo(unittest.TestCase):
         for _ in valid_hcj:
             assert jamo.is_hcj(_),\
                 ("Incorrectly decided U+{} "
-                 "was not hcj.").format(hex(_)[2:])
+                 "was not hcj.").format(hex(ord(_))[2:])
         # Negative tests
         for _ in itertools.chain(invalid_edge_cases,
                                  invalid_hangul,
                                  invalid_other):
             assert not jamo.is_hcj(_),\
                 ("Incorrectly decided U+{} "
-                 "was hcj.").format(hex(_)[2:])
+                 "was hcj.").format(hex(ord(_))[2:])
 
     def test_is_hcj_modern(self):
         """is_hcj_modern tests
@@ -150,14 +151,14 @@ class TestJamo(unittest.TestCase):
         for _ in valid_hcj_modern:
             assert jamo.is_hcj_modern(_),\
                 ("Incorrectly decided U+{} "
-                 "was not modern hcj.").format(hex(_)[2:])
+                 "was not modern hcj.").format(hex(ord(_))[2:])
         # Negative tests
         for _ in itertools.chain(invalid_edge_cases,
                                  invalid_hangul,
                                  invalid_other):
             assert not jamo.is_hcj_modern(_),\
                 ("Incorrectly decided U+{} "
-                 "was modern hcj.").format(hex(_)[2:])
+                 "was modern hcj.").format(hex(ord(_))[2:])
 
     def test_is_hangul_char(self):
         """is_hangul_char tests
@@ -173,11 +174,11 @@ class TestJamo(unittest.TestCase):
         for _ in itertools.chain(harcoded_tests, _get_random_hangul(1024)):
             assert jamo.is_hangul_char(_),\
                 ("Incorrectly decided U+{} "
-                 "was not a hangul character.").format(hex(_)[2:])
+                 "was not a hangul character.").format(hex(ord(_))[2:])
         for _ in itertools.chain(invalid_edge_cases, invalid_other):
             assert not jamo.is_hangul_char(_),\
                 ("Incorrectly decided U+{} "
-                 "was a hangul character.").format(hex(_)[2:])
+                 "was a hangul character.").format(hex(ord(_))[2:])
 
     def test_get_jamo_class(self):
         """get_jamo_class tests
@@ -306,8 +307,7 @@ class TestJamo(unittest.TestCase):
 
         all_tests = itertools.chain(zip(test_args, targets))
 
-        for args, target in all_tests:
-            jamo_class, jamo_char = args
+        for (jamo_class, jamo_char), target in all_tests:
             trial = jamo.hcj_to_jamo(jamo_class, jamo_char)
             assert trial == target,\
                 ("Converted {jamo_char} as {jamo_class} to {trial}, but "
@@ -396,7 +396,7 @@ class TestJamo(unittest.TestCase):
                 if len(hangul) == 1 else\
                 ("Incorrectly converted {hangul} to "
                  "{failure}.".format(hangul=hangul,
-                                     failure=[hex(_) for _ in trial]))
+                                     failure=[hex(ord(_)) for _ in trial]))
 
     def test_h2j(self):
         """h2j tests
@@ -423,71 +423,56 @@ class TestJamo(unittest.TestCase):
 
     def test_jamo_to_hangul(self):
         """jamo_to_hangul tests
-        Arguments may be integers corresponding to the U+11xx codepoints, the
-        actual U+11xx jamo characters, or HCJ.
+        Arguments may be jamo characters including HCJ. Throws an
+        InvalidJamoError if there is no corresponding Hangul character to the
+        inputs.
 
-        Outputs a one-character Hangul string.
-
-        This function is identical to j2h.
-
-        Enables use of random Hangul test functions.
+        Outputs a single Hangul character.
         """
-        global _JAMO_TO_HANGUL_WORKS
 
-        # Support int -> Hangul conversion.
-        int_cases = [(0x110c, 0x1161, 0),
-                     (0x1106, 0x1169, 0),
-                     (0x1112, 0x1161, 0x11ab),
-                     (0x1100, 0x1173, 0x11af),
-                     (0x1109, 0x1165, 0),
-                     (0x110b, 0x116e, 0x11af),
-                     (0x1111, 0x1167, 0x11bc),
-                     (0x110b, 0x1163, 0x11bc)]
-        # Support chr -> Hangul conversion.
-        chr_cases = [tuple(chr(_) for _ in case) for case in int_cases]
-        # Support HCJ chr -> Hangul conversion.
-        hcj_cases = [('ㅈ', 'ㅏ', ''),
+        # Support jamo -> Hangul conversion.
+        chr_cases = ((chr(0x110c), chr(0x1161), chr(0)),
+                     (chr(0x1106), chr(0x1169), chr(0)),
+                     (chr(0x1112), chr(0x1161), chr(0x11ab)),
+                     (chr(0x1100), chr(0x1173), chr(0x11af)),
+                     (chr(0x1109), chr(0x1165), chr(0)),
+                     (chr(0x110b), chr(0x116e), chr(0x11af)),
+                     (chr(0x1111), chr(0x1167), chr(0x11bc)),
+                     (chr(0x110b), chr(0x1163), chr(0x11bc)))
+        # Support HCJ -> Hangul conversion.
+        hcj_cases = (('ㅈ', 'ㅏ', ''),
                      ('ㅁ', 'ㅗ', ''),
                      ('ㅎ', 'ㅏ', 'ㄴ'),
                      ('ㄱ', 'ㅡ', 'ㄹ'),
                      ('ㅅ', 'ㅓ', ''),
                      ('ㅇ', 'ㅜ', 'ㄹ'),
                      ('ㅍ', 'ㅕ', 'ㅇ'),
-                     ('ㅇ', 'ㅑ', 'ㅇ')]
-        desired_hangul = ["자",
-                          "모",
-                          "한",
-                          "글",
-                          "서",
-                          "울",
-                          "평",
-                          "양"]
+                     ('ㅇ', 'ㅑ', 'ㅇ'))
+        desired_hangul1 = ("자",
+                           "모",
+                           "한",
+                           "글",
+                           "서",
+                           "울",
+                           "평",
+                           "양")
+        # Test the arity 2 version.
+        arity2_cases = (('ㅎ', 'ㅏ'))
+        desired_hangul2 = ("하")
+        # Support mixed jamo and hcj conversion.
+        mixed_cases = (('ᄒ', 'ㅏ', 'ㄴ'))
+        desired_hangul3 = ("한")
 
-        for hangul, (lead, vowel, tail) in zip(desired_hangul, int_cases):
-            trial = jamo.jamo_to_hangul(lead, vowel, tail)
-            assert hangul == trial,\
-                ("Conversion from int to Hangul failed. "
-                 "Incorrect conversion from"
-                 "({lead}, {vowel}, {tail}) to "
-                 "({hangul}). "
-                 "Got {failure}.").format(lead=lead,
-                                          vowel=vowel,
-                                          tail=tail,
-                                          hangul=hangul,
-                                          failure=trial)
-        for hangul, (lead, vowel, tail) in zip(desired_hangul, chr_cases):
-            trial = jamo.jamo_to_hangul(lead, vowel, tail)
-            assert hangul == trial,\
-                ("Conversion from jamo chr to Hangul failed. "
-                 "Incorrect conversion from"
-                 "({lead}, {vowel}, {tail}) to "
-                 "({hangul}). "
-                 "Got {failure}.").format(lead=lead,
-                                          vowel=vowel,
-                                          tail=tail,
-                                          hangul=hangul,
-                                          failure=trial)
-        for hangul, (lead, vowel, tail) in zip(desired_hangul, hcj_cases):
+        invalid_cases = [('a', 'b', 'c'), ('a', 'b'), tuple(),
+                         ('ㄴ', 'ㄴ', 'ㄴ'), ('ㅏ', 'ㄴ'), ('ㄴ',), ('ᄒ', ),
+                         ('ᄒ', 'ㅏ', 'ㄴ', 'ㅏ')]
+
+        all_tests = itertools.chain(zip(chr_cases, desired_hangul1),
+                                    zip(hcj_cases, desired_hangul1),
+                                    zip(arity2_cases, desired_hangul2),
+                                    zip(mixed_cases, desired_hangul3))
+
+        for hangul, (lead, vowel, tail) in all_tests:
             trial = jamo.jamo_to_hangul(lead, vowel, tail)
             assert hangul == trial,\
                 ("Conversion from hcj to Hangul failed. "
@@ -500,24 +485,16 @@ class TestJamo(unittest.TestCase):
                                           hangul=hangul,
                                           failure=trial)
 
-        # TODO: Negative tests
-
-        # Test the arity 2 version.
-        trial = jamo.jamo_to_hangul('ㅎ', 'ㅏ')
-        assert trial == '하',\
-            ("jamo_to_hangul/2 failed. "
-             "Incorrect conversion from "
-             "({lead}, {vowel}) to "
-             "({hangul}). "
-             "Got {failure}.").format(lead='ㅎ', vowel='ㅏ',
-                                      hangul='하', failure=trial)
-
-        # Hardmode: not even supported, but uses jamo, hcj, and int.
-        if jamo.jamo_to_hangul('ㅎ', chr(0x1161), 0x11ab) != "한":
-            print("No karma on jamo_to_hangul. Mixed type support when.")
-
-        # Enable use of random Hangul functions if all goes well.
-        _JAMO_TO_HANGUL_WORKS = True
+        # Negative tests
+        _stderr = jamo.jamo.stderr
+        jamo.jamo.stderr = io.StringIO()
+        for _ in invalid_cases:
+            try:
+                jamo.jamo_to_hangul(*_)
+                assert False, "Accepted bad input without throwing exception."
+            except jamo.InvalidJamoError:
+                pass
+        jamo.jamo.stderr = _stderr
 
     def test_j2h(self):
         """j2h hardcoded tests.
@@ -531,12 +508,10 @@ class TestJamo(unittest.TestCase):
         """
 
         assert jamo.j2h('ㅎ', 'ㅏ', 'ㄴ') == "한",\
-            ("j2h doesn't work. "
-             "Hint: it's the same as jamo_to_hangul.")
+            "j2h doesn't work. Hint: it's the same as jamo_to_hangul."
 
         assert jamo.j2h('ㅎ', 'ㅏ') == "하",\
-            ("j2h doesn't work. "
-             "Hint: it's the same as jamo_to_hangul.")
+            "j2h doesn't work. Hint: it's the same as jamo_to_hangul."
 
     def test_synth_hangul(self):
         # To be implemented in a future version
