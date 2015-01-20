@@ -187,14 +187,16 @@ class TestJamo(unittest.TestCase):
 
         get_jamo_class should return the class ["lead" | "vowel" | "tail"] of
         a given character.
+
+        Note: strict adherence to Unicode 7.0
         """
 
         # Note: Fillers are considered initial consonants according to
         # www.unicode.org/charts/PDF/U1100.pdf
-        leads = (chr(_) for _ in range(0x1100, 0x1161))
+        leads = (chr(_) for _ in range(0x1100, 0x1160))
         lead_targets = ("lead" for _ in range(0x1100, 0x1161))
-        vowels = (chr(_) for _ in range(0x1161, 0x11a8))
-        vowel_targets = ("vowel" for _ in range(0x1161, 0x11a8))
+        vowels = (chr(_) for _ in range(0x1160, 0x11a8))
+        vowel_targets = ("vowel" for _ in range(0x1160, 0x11a8))
         tails = (chr(_) for _ in range(0x11a8, 0x1200))
         tail_targets = ("tail" for _ in range(0x11a8, 0x1200))
 
@@ -207,11 +209,18 @@ class TestJamo(unittest.TestCase):
 
         # Test characters
         for test, target in all_tests:
-            trial = jamo.get_jamo_class(test)
+            try:
+                trial = jamo.get_jamo_class(test)
+            except jamo.InvalidJamoError:
+                assert False,\
+                    ("Thought U+{code} "
+                     "was invalid input.").format(code=hex(ord(test))[2:])
             assert trial == target,\
-                ("Incorrectly decided {char} "
-                 "was a {jamo_class}").format(tail=hex(test),
-                                              jamo_class=target)
+                ("Incorrectly decided {test} "
+                 "was a {trial}. "
+                 "(it's a {target})").format(test=hex(ord(test)),
+                                             trial=trial,
+                                             target=target)
 
         # Negative tests
         _stderr = jamo.jamo.stderr
@@ -244,6 +253,9 @@ class TestJamo(unittest.TestCase):
         target_chars = itertools.chain(_HCJ_LEADS_MODERN,
                                        _HCJ_VOWELS_MODERN,
                                        _HCJ_TAILS_MODERN)
+        # TODO: Complete archaic jamo coverage
+        test_archaic = ["ᄀᄁᄂᄃᇹᇫ"]
+        target_archaic = ["ㄱㄲㄴㄷㆆㅿ"]
         test_strings_idempotent = ["", "aAzZ ,.:;~`―—–/!@#$%^&*()[]{}",
                                    "汉语 / 漢語; Hànyǔ or 中文; Zhōngwén",
                                    "ㄱㆎ"]
@@ -254,6 +266,7 @@ class TestJamo(unittest.TestCase):
         target_strings_unmapped = test_strings_unmapped
 
         all_tests = itertools.chain(zip(test_chars, target_chars),
+                                    zip(test_archaic, target_archaic),
                                     zip(test_strings_idempotent,
                                         target_strings_idempotent),
                                     zip(test_strings_unmapped,

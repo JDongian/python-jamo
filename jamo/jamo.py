@@ -23,12 +23,19 @@ JAMO_TO_HCJ_TRANSLATIONS = {jamo: hcj for jamo, hcj in
 VALID_JAMO = JAMO_TO_HCJ_TRANSLATIONS.keys()
 VALID_HCJ = JAMO_TO_HCJ_TRANSLATIONS.values()
 
+JAMO_LEADS = [chr(_) for _ in range(0x1100, 0x115F)]
+JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
+JAMO_VOWELS = [chr(_) for _ in range(0x1161, 0x11A8)]
+JAMO_VOWELS_MODERN = [chr(_) for _ in range(0x1161, 0x1176)]
+JAMO_TAILS = [chr(_) for _ in range(0x11A8, 0x1200)]
+JAMO_TAILS_MODERN = [chr(_) for _ in range(0x11A8, 0x11C3)]
+
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
     def __init__(self, message, jamo):
         super(InvalidJamoError, self).__init__(message)
-        self.jamo = hex(jamo)
+        self.jamo = hex(ord(jamo))
         print("Could not parse jamo: U+{code}".format(code=self.jamo[2:]),
               file=stderr)
 
@@ -59,30 +66,6 @@ def _value_to_jamo(value, jamo_class=None):
         return translations[jamo_class]
     # If given something else
     return value
-
-
-def _value_to_hcj(value):
-    """Convert a value to an HCJ character.
-    Jamo characters or ints in the U+11xx jamo range will be converted to HCJ.
-    """
-
-    # TODO: Allow non-matches to pass unharmed!
-    try:
-        _value = chr(value)
-    except TypeError:
-        _value = value
-    if _value in VALID_JAMO:
-        return JAMO_TO_HCJ_TRANSLATIONS.get(value, value)
-    return value
-
-
-def _iter_to_hcj_iter(iterable):
-    """Convert an iterable to an HCJ iterable.
-    All ints in the U+11xx jamo range and all jamo characters will be
-    converted to HCJ.
-    """
-
-    return (_value_to_hcj(_) for _ in iterable)
 
 
 def _hangul_char_to_jamo(syllable):
@@ -131,8 +114,14 @@ def is_jamo_modern(character):
     """Test if a single character is a modern jamo character.
     Modern jamo includes all U+11xx jamo in addition to HCJ in modern usage,
     as defined in Unicode 7.0.
+    WARNING: U+1160 is NOT considered a modern jamo character, but it is listed
+    under 'Medial Vowels' in the Unicode 7.0 spec.
     """
-    return False
+    code = ord(character)
+    return 0x1100 <= code <= 0x1112 or\
+        0x1161 <= code <= 0x1175 or\
+        0x11A8 <= code <= 0x11C2 or\
+        is_hcj_modern(character)
 
 
 def is_hcj(character):
@@ -148,7 +137,9 @@ def is_hcj_modern(character):
     Modern HCJ is defined as HCJ that corresponds to a U+11xx jamo character
     in modern usage.
     """
-    return False
+    code = ord(character)
+    return 0x3131 <= code <= 0x314E or\
+        0x314F <= code <= 0x3163
 
 
 def is_hangul_char(character):
@@ -160,24 +151,101 @@ def is_hangul_char(character):
 
 def get_jamo_class(jamo):
     """Determine if a jamo character is a lead, vowel, or tail.
-    Integers and U+11xx characters are valid arguments. HCJ is not valid here.
+    Integers and U+11xx characters are valid arguments. HCJ consonants are not
+    valid here.
 
     get_jamo_class should return the class ["lead" | "vowel" | "tail"] of a
     given character or integer.
-    """
 
-    # Allow single character strings, autoconverting to a codepoint.
-    if type(jamo) == str:
-        jamo = ord(jamo)
-    # Perhaps raise a separate error for U+3xxx jamo.
-    if chr(jamo) in "ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ":
+    Note: jamo class directly corresponds to the Unicode 7.0 specification,
+    thus includes filler characters as having a class.
+    """
+    # TODO: Perhaps raise a separate error for U+3xxx jamo.
+    if jamo in JAMO_LEADS or jamo == chr(0x115F):
         return "lead"
-    if chr(jamo) in "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ":
+    if jamo in JAMO_VOWELS or jamo == chr(0x1160) or\
+            0x314F <= ord(jamo) <= 0x3163:
         return "vowel"
-    if chr(jamo) in "ᆨᆩᆪᆫᆬᆭᆮᆯᆰᆱᆲᆳᆴᆵᆶᆷᆸᆹᆺᆻᆼᆽᆾᆿᇀᇁᇂ":
+    if jamo in JAMO_TAILS:
         return "tail"
     else:
-        raise InvalidJamoError("Could not not determine jamo class.", jamo)
+        raise InvalidJamoError("Invalid or classless jamo argument.", jamo)
+
+
+def jamo_to_hcj(data):
+    """Convert jamo to HCJ.
+    Arguments may be iterables or single characters.
+
+    jamo_to_hcj should convert every jamo character into HCJ in a given input,
+    if possible. Anything else is unchanged.
+
+    jamo_to_hcj is the generator version of j2hcj, the string version. Passing
+    a character to jamo_to_hcj will still return a generator.
+    """
+    if len(data) == 1:
+        return (_ for _ in JAMO_TO_HCJ_TRANSLATIONS.get(data, data))
+    return (JAMO_TO_HCJ_TRANSLATIONS.get(_, _) for _ in data)
+
+
+def j2hcj(jamo):
+    """Convert jamo into HCJ.
+    Arguments may be iterables or single characters.
+
+    j2hcj should convert every jamo character into HCJ in a given input, if
+    possible. Anything else is unchanged.
+
+    j2hcj is the string version of jamo_to_hcj, the generator version.
+    """
+    return ''.join(jamo_to_hcj(jamo))
+
+
+def hcj_to_jamo(hcj_char, position="vowel"):
+    """Convert a HCJ character to a jamo character.
+    Arguments may be single characters along with the desired jamo class
+    (lead, vowel, tail). Non-mappable input will raise an InvalidJamoError.
+    """
+    if position == "lead":
+        return None
+    elif position == "vowel":
+        return None
+    elif position == "tail":
+        return None
+    raise InvalidJamoError("No mapping from input to jamo.", hcj_char)
+
+
+def hcj2j(hcj_char, position="vowel"):
+    """Convert a HCJ character to a jamo character.
+    Identical to hcj_to_jamo.
+    """
+    return hcj_to_jamo(hcj_char, position)
+
+
+def hangul_to_jamo(hangul_string):
+    """Convert a string of Hangul to jamo.
+    Arguments may be iterables of characters.
+
+    hangul_to_jamo should split every Hangul character into U+11xx jamo
+    characters for any given string. Non-hangul characters are not changed.
+
+    hangul_to_jamo is the generator version of h2j, the string version.
+    """
+
+    return (_ for _ in
+            chain.from_iterable(_hangul_char_to_jamo(_) for _ in
+                                hangul_string))
+
+
+def h2j(hangul_string):
+    """Convert a string of Hangul to jamo.
+    Arguments may be iterables of characters.
+
+    h2j should split every Hangul character into U+11xx jamo for any given
+    string. Non-hangul characters are not touched.
+
+    h2j is the string version of hangul_to_jamo, the generator version.
+    """
+
+    return ''.join(hangul_to_jamo(hangul_string))
 
 
 def jamo_to_hangul(lead, vowel, tail=0):
@@ -209,87 +277,6 @@ def j2h(lead, vowel, tail=0):
     """
 
     return jamo_to_hangul(lead, vowel, tail)
-
-
-def jamo_to_hcj(jamo):
-    """Transform jamo to HCJ.
-    Arguments may be integers corresponding to U+11xx codepoints, actual
-    U+11xx jamo characters, or HCJ characters. These may be in an iterable.
-
-    jamo_to_hcj should convert every U+11xx jamo character into U+31xx HCJ
-    in a given string. Non-hangul and HCJ characters are not touched.
-
-    jamo_to_hcj is the generator version of j2hcj, the string version. Note
-    that passing a non-iterable to jamo_to_hcj will still return a generator.
-    """
-
-    try:
-        return _iter_to_hcj_iter(jamo)
-    except TypeError:
-        pass
-
-    try:
-        _value = chr(jamo)
-    except TypeError:
-        _value = jamo
-
-    if _value in VALID_JAMO:
-        return (_value_to_hcj(_) for _ in chr(jamo))
-    return (_ for _ in [_value_to_hcj(jamo)])
-
-
-def j2hcj(jamo):
-    """Transform jamo into HCJ.
-    Arguments may be integers corresponding to U+11xx codepoints, actual
-    U+11xx jamo characters, or HCJ characters. These may be in an iterable.
-
-    j2hcj should convert every U+11xx jamo character into U+31xx HCJ in a
-    given string. Non-hangul and HCJ characters are not touched.
-
-    j2hcj is the string version of jamo_to_hcj, the generator version.
-    """
-
-    return ''.join(jamo_to_hcj(jamo))
-
-
-def hangul_to_jamo(hangul_string):
-    """Convert a string of Hangul to jamo.
-    Arguments may be iterables of characters.
-
-    hangul_to_jamo should split every Hangul character into U+11xx jamo
-    characters for any given string. Non-hangul characters are not changed.
-
-    hangul_to_jamo is the generator version of h2j, the string version.
-    """
-
-    return (_ for _ in
-            chain.from_iterable(_hangul_char_to_jamo(_) for _ in
-                                hangul_string))
-
-
-def h2j(hangul_string):
-    """Convert a string of Hangul to jamo.
-    Arguments may be iterables of characters.
-
-    h2j should split every Hangul character into U+11xx jamo for any given
-    string. Non-hangul characters are not touched.
-
-    h2j is the string version of hangul_to_jamo, the generator version.
-    """
-
-    return ''.join(hangul_to_jamo(hangul_string))
-
-
-def hcj_char_to_jamo(hcj_char, position="vowel"):
-    """Transform a HCJ character to jamo based on jamo class."""
-    raise NotImplementedError
-    if position == "lead":
-        return hcj_char
-    elif position == "vowel":
-        return hcj_char
-    elif position == "tail":
-        return hcj_char
-    raise InvalidJamoError
 
 
 def synth_hangul(string):
