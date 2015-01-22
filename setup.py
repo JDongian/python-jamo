@@ -28,4 +28,6 @@ setup(
     ],
     keywords="Korean Hangul jamo syllable nlp",
     packages=find_packages(),
+    package_dir={'jamo': 'jamo'},
+    package_data={'jamo': ['data/*.json']},
 )
