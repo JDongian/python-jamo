@@ -9,6 +9,5 @@ from .jamo import (JAMO_LEADS, JAMO_LEADS_MODERN,
                    hcj_to_jamo, hcj2j,
                    jamo_to_hangul, j2h,
                    hangul_to_jamo, h2j,
-                   synth_hangul,
                    InvalidJamoError)
 __version__ = '0.4.0'

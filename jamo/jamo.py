@@ -15,27 +15,17 @@ import re
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
-JAMO_OFFSET = 44032
-JAMO_LEAD_OFFSET = 0x10ff
-JAMO_VOWEL_OFFSET = 0x1160
-JAMO_TAIL_OFFSET = 0x11a7
+_JAMO_OFFSET = 44032
+_JAMO_LEAD_OFFSET = 0x10ff
+_JAMO_VOWEL_OFFSET = 0x1160
+_JAMO_TAIL_OFFSET = 0x11a7
 
 with open(os.path.join(_ROOT, 'data', "U+11xx.json"), 'r') as namedata:
-    JAMO_TO_NAME = json.load(namedata)
-_JAMO_REVERSE_LOOKUP = {name: char for char, name in JAMO_TO_NAME.items()}
+    _JAMO_TO_NAME = json.load(namedata)
+_JAMO_REVERSE_LOOKUP = {name: char for char, name in _JAMO_TO_NAME.items()}
 with open(os.path.join(_ROOT, 'data', "U+31xx.json"), 'r') as namedata:
-    HCJ_TO_NAME = json.load(namedata)
-_HCJ_REVERSE_LOOKUP = {name: char for char, name in HCJ_TO_NAME.items()}
-
-JAMO_TO_HCJ_TRANSLATIONS = {jamo: hcj for jamo, hcj in
-                            zip("ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ"
-                                "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
-                                "ᆨᆩᆪᆫᆬᆭᆮᆯᆰᆱᆲᆳᆴᆵᆶᆷᆸᆹᆺᆻᆼᆽᆾᆿᇀᇁᇂ",
-                                "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
-                                "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"
-                                "ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ")}
-VALID_JAMO = JAMO_TO_HCJ_TRANSLATIONS.keys()
-VALID_HCJ = JAMO_TO_HCJ_TRANSLATIONS.values()
+    _HCJ_TO_NAME = json.load(namedata)
+_HCJ_REVERSE_LOOKUP = {name: char for char, name in _HCJ_TO_NAME.items()}
 
 JAMO_LEADS = [chr(_) for _ in range(0x1100, 0x115F)]
 JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
@@ -54,40 +44,22 @@ class InvalidJamoError(Exception):
               file=stderr)
 
 
-def _value_to_jamo(value, jamo_class=None):
-    try:
-        _value = chr(value)
-    except TypeError:
-        _value = value
-    # If given a jamo char or jamo integer
-    if _value in VALID_JAMO:
-        return value
-    # If given a hcj char or hcj integer
-    if _value in VALID_HCJ:
-        translations = {get_jamo_class(jamo): jamo for jamo, hcj in
-                        JAMO_TO_HCJ_TRANSLATIONS.items() if hcj == _value}
-        # TODO: Add a custom exception for KeyError.
-        return translations[jamo_class]
-    # If given something else
-    return value
-
-
 def _hangul_char_to_jamo(syllable):
     """Return a 3-tuple of lead, vowel, and tail jamo characters.
     Note: Non-Hangul characters are echoed back.
     """
     if is_hangul_char(syllable):
-        rem = ord(syllable) - JAMO_OFFSET
+        rem = ord(syllable) - _JAMO_OFFSET
         tail = rem % 28
         vowel = 1 + ((rem - tail) % 588) // 28
         lead = 1 + rem // 588
         if tail:
-            return (chr(lead + JAMO_LEAD_OFFSET),
-                    chr(vowel + JAMO_VOWEL_OFFSET),
-                    chr(tail + JAMO_TAIL_OFFSET))
+            return (chr(lead + _JAMO_LEAD_OFFSET),
+                    chr(vowel + _JAMO_VOWEL_OFFSET),
+                    chr(tail + _JAMO_TAIL_OFFSET))
         else:
-            return (chr(lead + JAMO_LEAD_OFFSET),
-                    chr(vowel + JAMO_VOWEL_OFFSET))
+            return (chr(lead + _JAMO_LEAD_OFFSET),
+                    chr(vowel + _JAMO_VOWEL_OFFSET))
     else:
         return syllable
 
@@ -95,19 +67,17 @@ def _hangul_char_to_jamo(syllable):
 def _jamo_to_hangul_char(lead, vowel, tail=0):
     """Return the Hangul character for the given jamo characters.
     """
-    lead = ord(lead) - JAMO_LEAD_OFFSET
-    vowel = ord(vowel) - JAMO_VOWEL_OFFSET
-    tail = ord(tail) - JAMO_TAIL_OFFSET if tail else 0
-    return chr(tail + (vowel - 1) * 28 + (lead - 1) * 588 + JAMO_OFFSET)
+    lead = ord(lead) - _JAMO_LEAD_OFFSET
+    vowel = ord(vowel) - _JAMO_VOWEL_OFFSET
+    tail = ord(tail) - _JAMO_TAIL_OFFSET if tail else 0
+    return chr(tail + (vowel - 1) * 28 + (lead - 1) * 588 + _JAMO_OFFSET)
 
 
 def _jamo_char_to_hcj(char):
     if is_jamo(char):
-        jamo_name = _get_unicode_name(char)
         hcj_name = re.sub("(?<=HANGUL )(\w+)",
                           "LETTER",
                           _get_unicode_name(char))
-        print(hcj_name)
         if hcj_name in _HCJ_REVERSE_LOOKUP.keys():
             return _HCJ_REVERSE_LOOKUP[hcj_name]
     return char
@@ -116,12 +86,12 @@ def _jamo_char_to_hcj(char):
 def _get_unicode_name(char):
     """Fetch the unicode name for jamo characters.
     """
-    if char not in JAMO_TO_NAME.keys() and char not in HCJ_TO_NAME.keys():
+    if char not in _JAMO_TO_NAME.keys() and char not in _HCJ_TO_NAME.keys():
         raise InvalidJamoError("Not jamo or nameless jamo character", char)
     else:
         if is_hcj(char):
-            return HCJ_TO_NAME[char]
-        return JAMO_TO_NAME[char]
+            return _HCJ_TO_NAME[char]
+        return _JAMO_TO_NAME[char]
 
 
 def is_jamo(character):
@@ -303,7 +273,6 @@ def jamo_to_hangul(lead, vowel, tail=''):
         result = _jamo_to_hangul_char(lead, vowel, tail)
         if is_hangul_char(result):
             return result
-    print("Err: %s %s %s" % (lead, vowel, tail))
     raise InvalidJamoError("Could not synthesize characters to Hangul.",
                            '\x00')
 
