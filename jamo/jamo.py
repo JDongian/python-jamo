@@ -6,13 +6,27 @@ For more information, see:
 http://python-jamo.readthedocs.org/ko/latest/
 """
 
+import os
 from sys import stderr
 from itertools import chain
+import json
+import re
+
+
+_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 JAMO_OFFSET = 44032
 JAMO_LEAD_OFFSET = 0x10ff
 JAMO_VOWEL_OFFSET = 0x1160
 JAMO_TAIL_OFFSET = 0x11a7
+
+with open(os.path.join(_ROOT, 'data', "U+11xx.json"), 'r') as namedata:
+    JAMO_TO_NAME = json.load(namedata)
+_JAMO_REVERSE_LOOKUP = {name: char for char, name in JAMO_TO_NAME.items()}
+with open(os.path.join(_ROOT, 'data', "U+31xx.json"), 'r') as namedata:
+    HCJ_TO_NAME = json.load(namedata)
+_HCJ_REVERSE_LOOKUP = {name: char for char, name in HCJ_TO_NAME.items()}
+
 JAMO_TO_HCJ_TRANSLATIONS = {jamo: hcj for jamo, hcj in
                             zip("ᄀᄁᄂᄃᄄᄅᄆᄇᄈᄉᄊᄋᄌᄍᄎᄏᄐᄑᄒ"
                                 "ᅡᅢᅣᅤᅥᅦᅧᅨᅩᅪᅫᅬᅭᅮᅯᅰᅱᅲᅳᅴᅵ"
@@ -38,16 +52,6 @@ class InvalidJamoError(Exception):
         self.jamo = hex(ord(jamo))
         print("Could not parse jamo: U+{code}".format(code=self.jamo[2:]),
               file=stderr)
-
-
-def _to_codepoint(character):
-    """Accept a Unicode character or integer and return a codepoint."""
-    if not character:
-        raise TypeError
-    if type(character) == int:
-        return character
-    else:
-        return ord(character)
 
 
 def _value_to_jamo(value, jamo_class=None):
@@ -77,25 +81,47 @@ def _hangul_char_to_jamo(syllable):
         tail = rem % 28
         vowel = 1 + ((rem - tail) % 588) // 28
         lead = 1 + rem // 588
-        return (chr(lead + JAMO_LEAD_OFFSET),
-                chr(vowel + JAMO_VOWEL_OFFSET),
-                chr(tail + JAMO_TAIL_OFFSET if tail else 0))
+        if tail:
+            return (chr(lead + JAMO_LEAD_OFFSET),
+                    chr(vowel + JAMO_VOWEL_OFFSET),
+                    chr(tail + JAMO_TAIL_OFFSET))
+        else:
+            return (chr(lead + JAMO_LEAD_OFFSET),
+                    chr(vowel + JAMO_VOWEL_OFFSET))
     else:
         return syllable
 
 
 def _jamo_to_hangul_char(lead, vowel, tail=0):
     """Return the Hangul character for the given jamo characters.
-    Equivalent to jamo_to_hangul, but exported function has a shorter name.
     """
-    lead = _to_codepoint(_value_to_jamo(lead, "lead"))
-    vowel = _to_codepoint(_value_to_jamo(vowel, "vowel"))
-    tail = _to_codepoint(_value_to_jamo(tail, "tail")) if tail else 0
-
-    lead -= JAMO_LEAD_OFFSET
-    vowel -= JAMO_VOWEL_OFFSET
-    tail = tail - JAMO_TAIL_OFFSET if tail else 0
+    lead = ord(lead) - JAMO_LEAD_OFFSET
+    vowel = ord(vowel) - JAMO_VOWEL_OFFSET
+    tail = ord(tail) - JAMO_TAIL_OFFSET if tail else 0
     return chr(tail + (vowel - 1) * 28 + (lead - 1) * 588 + JAMO_OFFSET)
+
+
+def _jamo_char_to_hcj(char):
+    if is_jamo(char):
+        jamo_name = _get_unicode_name(char)
+        hcj_name = re.sub("(?<=HANGUL )(\w+)",
+                          "LETTER",
+                          _get_unicode_name(char))
+        print(hcj_name)
+        if hcj_name in _HCJ_REVERSE_LOOKUP.keys():
+            return _HCJ_REVERSE_LOOKUP[hcj_name]
+    return char
+
+
+def _get_unicode_name(char):
+    """Fetch the unicode name for jamo characters.
+    """
+    if char not in JAMO_TO_NAME.keys() and char not in HCJ_TO_NAME.keys():
+        raise InvalidJamoError("Not jamo or nameless jamo character", char)
+    else:
+        if is_hcj(char):
+            return HCJ_TO_NAME[char]
+        return JAMO_TO_NAME[char]
 
 
 def is_jamo(character):
@@ -182,9 +208,7 @@ def jamo_to_hcj(data):
     jamo_to_hcj is the generator version of j2hcj, the string version. Passing
     a character to jamo_to_hcj will still return a generator.
     """
-    if len(data) == 1:
-        return (_ for _ in JAMO_TO_HCJ_TRANSLATIONS.get(data, data))
-    return (JAMO_TO_HCJ_TRANSLATIONS.get(_, _) for _ in data)
+    return (_jamo_char_to_hcj(_) for _ in data)
 
 
 def j2hcj(jamo):
@@ -205,12 +229,20 @@ def hcj_to_jamo(hcj_char, position="vowel"):
     (lead, vowel, tail). Non-mappable input will raise an InvalidJamoError.
     """
     if position == "lead":
-        return None
+        jamo_class = "CHOSEONG"
     elif position == "vowel":
-        return None
+        jamo_class = "JUNGSEONG"
     elif position == "tail":
-        return None
-    raise InvalidJamoError("No mapping from input to jamo.", hcj_char)
+        jamo_class = "JONGSEONG"
+    else:
+        raise InvalidJamoError("No mapping from input to jamo.", hcj_char)
+    jamo_name = re.sub("(?<=HANGUL )(\w+)",
+                       jamo_class,
+                       _get_unicode_name(hcj_char))
+    # TODO: add tests that test non entries.
+    if jamo_name in _JAMO_REVERSE_LOOKUP.keys():
+        return _JAMO_REVERSE_LOOKUP[jamo_name]
+    return hcj_char
 
 
 def hcj2j(hcj_char, position="vowel"):
@@ -248,7 +280,7 @@ def h2j(hangul_string):
     return ''.join(hangul_to_jamo(hangul_string))
 
 
-def jamo_to_hangul(lead, vowel, tail=0):
+def jamo_to_hangul(lead, vowel, tail=''):
     """Return the Hangul character for the given jamo input.
     Integers corresponding to U+11xx jamo codepoints, U+11xx jamo characters,
     or HCJ are valid inputs.
@@ -257,13 +289,23 @@ def jamo_to_hangul(lead, vowel, tail=0):
 
     This function is identical to j2h.
     """
-
-    # TODO: Allow HCJ input.
-    # TODO: Implement string input.
-
     # Internally, we convert everything to a jamo char,
     # then pass it to _jamo_to_hangul_char
-    return _jamo_to_hangul_char(lead, vowel, tail)
+    lead = hcj_to_jamo(lead, "lead")
+    vowel = hcj_to_jamo(vowel, "vowel")
+    if not tail or ord(tail) == 0:
+        tail = None
+    elif is_hcj(tail):
+        tail = hcj_to_jamo(tail, "tail")
+    if (is_jamo(lead) and get_jamo_class(lead) == "lead") and\
+       (is_jamo(vowel) and get_jamo_class(vowel) == "vowel") and\
+       ((not tail) or (is_jamo(tail) and get_jamo_class(tail) == "tail")):
+        result = _jamo_to_hangul_char(lead, vowel, tail)
+        if is_hangul_char(result):
+            return result
+    print("Err: %s %s %s" % (lead, vowel, tail))
+    raise InvalidJamoError("Could not synthesize characters to Hangul.",
+                           '\x00')
 
 
 def j2h(lead, vowel, tail=0):

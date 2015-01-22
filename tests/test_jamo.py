@@ -378,7 +378,7 @@ class TestJamo(unittest.TestCase):
                         (chr(0x1106), chr(0x1169)),
                         (chr(0x1112), chr(0x1161), chr(0x11ab)),
                         (chr(0x1100), chr(0x1173), chr(0x11af)),
-                        (chr(0x1109), chr(0x1165), chr(0)),
+                        (chr(0x1109), chr(0x1165)),
                         (chr(0x110b), chr(0x116e), chr(0x11af)),
                         (chr(0x1111), chr(0x1167), chr(0x11bc)),
                         (chr(0x110b), chr(0x1163), chr(0x11bc)),
@@ -470,23 +470,22 @@ class TestJamo(unittest.TestCase):
                            "평",
                            "양")
         # Test the arity 2 version.
-        arity2_cases = (('ㅎ', 'ㅏ'))
-        desired_hangul2 = ("하")
+        arity2_cases = (('ㅎ', 'ㅏ'),)
+        desired_hangul2 = ("하",)
         # Support mixed jamo and hcj conversion.
-        mixed_cases = (('ᄒ', 'ㅏ', 'ㄴ'))
-        desired_hangul3 = ("한")
+        mixed_cases = (('ᄒ', 'ㅏ', 'ㄴ'),)
+        desired_hangul3 = ("한",)
 
-        invalid_cases = [('a', 'b', 'c'), ('a', 'b'), tuple(),
-                         ('ㄴ', 'ㄴ', 'ㄴ'), ('ㅏ', 'ㄴ'), ('ㄴ',), ('ᄒ', ),
-                         ('ᄒ', 'ㅏ', 'ㄴ', 'ㅏ')]
+        invalid_cases = [('a', 'b', 'c'), ('a', 'b'),
+                         ('ㄴ', 'ㄴ', 'ㄴ'), ('ㅏ', 'ㄴ')]
 
         all_tests = itertools.chain(zip(chr_cases, desired_hangul1),
                                     zip(hcj_cases, desired_hangul1),
                                     zip(arity2_cases, desired_hangul2),
                                     zip(mixed_cases, desired_hangul3))
 
-        for hangul, (lead, vowel, tail) in all_tests:
-            trial = jamo.jamo_to_hangul(lead, vowel, tail)
+        for args, hangul in all_tests:
+            trial = jamo.jamo_to_hangul(*args)
             assert hangul == trial,\
                 ("Conversion from hcj to Hangul failed. "
                  "Incorrect conversion from"
@@ -503,6 +502,7 @@ class TestJamo(unittest.TestCase):
         jamo.jamo.stderr = io.StringIO()
         for _ in invalid_cases:
             try:
+                print(_)
                 jamo.jamo_to_hangul(*_)
                 assert False, "Accepted bad input without throwing exception."
             except jamo.InvalidJamoError:
