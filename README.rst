@@ -10,8 +10,8 @@ Jamo: Hangul Character Analysis
 Python-jamo is a Python Hangul syllable decomposition and sythesis library
 for working with Hangul characters and jamo.
 
-Currently in early beta release, function names are subject to change, but
-there is coverage for nearly all Hangul-related codepoints under Unicode 7.0.
+Currently in beta release, function names are subject to change, but there is
+coverage for nearly all Hangul-related codepoints under Unicode 7.0.
 
 Originally designed to help students identify difficult-to-spell words
 containing (ㅔ,ㅐ) or (ㅗ,ㅜ), this project hopes to fill the niche of Korean
@@ -34,15 +34,8 @@ Documentation
 -------------
 
 Documentation is available at ReadTheDocs in `English`_ and `Korean`_. Korean
-documentation is a work in progress.
+documentation is a work in progress!
 
-:q
-:q
-:visual
-visual
-
-Qa
-Qa
 
 Contributing
 ------------

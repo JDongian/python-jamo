@@ -4,9 +4,6 @@
 A Guide to using Python-Jamo
 ============================
 
-*Note: Documentation may not match actual module usage due to the beta status
-of the python-jamo package.*
-
 `Hangul <https://en.wikipedia.org/wiki/Hangul>`_ is a modern writing system
 that originated in 1443 to represent the Korean language. It uses an alphabet
 of 24 consonants and vowels, each of which are called **jamo** (자모, 字母).
@@ -77,7 +74,7 @@ large files, it is recommended to use the provided generator functions::
     >>> hangul_to_jamo(long_story)
     <generator object <genexpr> at 0xdeadbeef9001>
 
-and for HCJ::
+To produce HCJ output::
 
     >>> from jamo import hangul_to_jamo, hangul_to_hcj
     >>> long_story = open("구운몽.txt", 'r').read()
@@ -89,8 +86,8 @@ Naming Conventions
 ------------------
 
 The python-jamo module is designed to be simple and lightweight. There are no
-classes to wrap Hangul strings or jamo characters. Many functions have string
-or generator equivalents. All string-generator pairs are shown below:
+classes to wrap Hangul strings or jamo characters. Below are two important
+string generator pairs:
 
 +---------------------+-----------------+
 | Generator Function  | String Function |
@@ -99,8 +96,11 @@ or generator equivalents. All string-generator pairs are shown below:
 +---------------------+-----------------+
 | hangul_to_jamo      | h2j             |
 +---------------------+-----------------+
-| hangul_transform    | hangulify       |
-+---------------------+-----------------+
+
+Note that most functions in the module are named in pairs, where the function
+with the shorter name is the one best for casual use, and the function with the
+longer name returns a generator and is probably better for analytic
+applications.
 
 Module output favors characters whenever possible.
 
@@ -109,7 +109,7 @@ Examples
 --------
 
 Basic examples: :ref:`sample_usage`.
-.. 
+
 .. Some example uses of jamo are shown below:
 .. 
 .. * `Highlight tricky vocabulary terms` (soon)
