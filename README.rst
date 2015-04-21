@@ -7,7 +7,7 @@ Jamo: Hangul Character Analysis
 .. image:: https://readthedocs.org/projects/python-jamo/badge/?version=latest
     :target: https://readthedocs.org/projects/python-jamo/?badge=latest
 
-Python-jamo is a Python Hangul syllable decomposition and sythesis library
+Python-jamo is a Python Hangul syllable decomposition and synthesis library
 for working with Hangul characters and jamo.
 
 Currently in beta release, function names are subject to change, but there is
