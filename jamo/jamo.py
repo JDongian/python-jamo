@@ -120,6 +120,31 @@ def is_jamo_modern(character):
         is_hcj_modern(character)
 
 
+def is_jaeum(character):
+    """Check if a jamo is a jaeum (consonant)."""
+    return character not in JAMO_VOWELS
+
+
+def is_moeum(character):
+    """Check if a jamo is a moeum (vowel)."""
+    return character in JAMO_VOWELS
+
+
+def is_lead(character):
+    """Check if a jamo is a lead consonant."""
+    return character in JAMO_LEADS
+
+
+def is_medial(character):
+    """Check if a jamo is pronounced with a medial sound."""
+    pass
+
+
+def is_tail(character):
+    """Check if a jamo is a tail consonant."""
+    return character in JAMO_TAILS
+
+
 def is_hcj(character):
     """Test if a single character is a HCJ character.
     HCJ is defined as the U+313x to U+318x block, sans two non-assigned code

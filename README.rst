@@ -1,5 +1,5 @@
-Jamo: Hangul Character Analysis
-===============================
+Jamo: Hangul Character Manipulation
+===================================
 
 .. image:: https://travis-ci.org/JDongian/python-jamo.svg?branch=master
     :target: https://travis-ci.org/JDongian/python-jamo
