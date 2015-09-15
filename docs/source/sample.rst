@@ -61,7 +61,8 @@ represented with ``"lead"``, vowels with ``"vowel"``, and final consonants with
         raise InvalidJamoError("Invalid or classless jamo argument.", jamo)
     jamo.jamo.InvalidJamoError: Invalid or classless jamo argument.
 
-This function does not accept HCJ consonants, as they are ambiguous.
+As shown above, this function does not accept HCJ consonants since they do not
+have an associated character class.
 
 
 Converting between Jamo and HCJ
@@ -103,7 +104,7 @@ Converting from Hangul to jamo is straightforward::
     >>> h2j("What is 한글?")
     'What is 한글?'
 
-or more commonly::
+or further transform into HCJ for better display::
 
     from jamo import h2j, j2hcj
     >>> j2hcj(h2j("What is 한글?"))
@@ -123,4 +124,4 @@ Building Hangul from jamo is easy, but must be done character-by-character::
     >>> j2h("ㅎ", "ㅏ", "ㄴ")
     '한'
 
-Note that HCJ and jamo inputs are both supported.
+Note that this function supports both HCJ and jamo inputs.
