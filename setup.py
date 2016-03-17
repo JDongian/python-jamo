@@ -15,7 +15,7 @@ setup(
     version=__version__,
     description="A Hangul syllable and jamo analyzer.",
     long_description=long_description,
-    url="https://github.com/jdong820/python-jamo",
+    url="https://github.com/jdongian/python-jamo",
     author="Joshua Dong",
     author_email="jdong42@gmail.com",
     license="http://www.apache.org/licenses/LICENSE-2.0",
