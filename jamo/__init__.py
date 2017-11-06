@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .jamo import (JAMO_LEADS, JAMO_LEADS_MODERN,
                    JAMO_VOWELS, JAMO_VOWELS_MODERN,
                    JAMO_TAILS, JAMO_TAILS_MODERN,

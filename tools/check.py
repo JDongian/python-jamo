@@ -1,5 +1,6 @@
 import re
 
+
 def validate(filename):
     with open(filename, 'r') as fin:
         last_code = 0
@@ -22,6 +23,7 @@ def validate(filename):
                 print("Error checking line: \"{}\"".format(line))
                 exit(1)
         return True
+
 
 if __name__ ==  "__main__":
     from sys import argv

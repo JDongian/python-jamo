@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Syllable and jamo analysis for Korean. Default internal exchange form is
 Hangul characters, not codepoints. Jamo exchange form is U+11xx characters,
 not U+3xxx Hangul Compatibility Jamo (HCJ) characters or codepoints.
