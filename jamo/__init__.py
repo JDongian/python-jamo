@@ -11,4 +11,4 @@ from .jamo import (JAMO_LEADS, JAMO_LEADS_MODERN,
                    jamo_to_hangul, j2h,
                    hangul_to_jamo, h2j,
                    InvalidJamoError)
-__version__ = '0.4.0'
+__version__ = '0.4.1'

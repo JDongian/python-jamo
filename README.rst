@@ -33,8 +33,7 @@ The jamo module is Python 3 only. Viva the bleeding edge!
 Documentation
 -------------
 
-Documentation is available at ReadTheDocs in `English`_ and `Korean`_. Korean
-documentation is a work in progress!
+Documentation is available at ReadTheDocs in `English`_.
 
 
 Contributing
