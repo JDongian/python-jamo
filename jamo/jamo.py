@@ -35,6 +35,21 @@ JAMO_VOWELS_MODERN = [chr(_) for _ in range(0x1161, 0x1176)]
 JAMO_TAILS = [chr(_) for _ in range(0x11A8, 0x1200)]
 JAMO_TAILS_MODERN = [chr(_) for _ in range(0x11A8, 0x11C3)]
 
+JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ","ㄸ","ㅃ","ㅆ","ㅉ"]
+JAMO_CONSONANT_CLUSTERS_MODERN = ["ㄳ", "ㄵ", "ㄶ", "ㄺ", "ㄻ", "ㄼ", 
+                                  "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅄ"]  
+JAMO_VOWEL_COMPOUNDS_MODERN = ["ㅘ","ㅙ","ㅚ","ㅝ","ㅞ","ㅟ","ㅢ"]
+JAMO_COMPOUNDS_MODERN = JAMO_DOUBLE_CONSONANTS_MODERN + \
+                        JAMO_CONSONANT_CLUSTERS_MODERN + \
+                        JAMO_VOWEL_COMPOUNDS_MODERN
+JAMO_COMPOUNDS_MODERN_DICTIONARY = {"ㄲ":("ㄱ","ㄱ"),"ㄸ":("ㄷ","ㄷ"),
+    "ㅃ":("ㅂ","ㅂ"),"ㅆ":("ㅅ","ㅅ"),"ㅉ":("ㅈ","ㅈ"), "ㄳ":("ㄱ","ㅅ"),
+    "ㄵ":("ㄴ","ㅈ"), "ㄶ":("ㄴ","ㅎ"), "ㄺ":("ㄹ","ㄱ"), "ㄻ":("ㄹ","ㅁ"),
+    "ㄼ":("ㄹ","ㅂ"), "ㄽ":("ㄹ","ㅅ"), "ㄾ":("ㄹ","ㅌ"), "ㄿ":("ㄹ","ㅍ"),
+    "ㅀ":("ㄹ","ㅎ"), "ㅄ":("ㅂ","ㅅ"), "ㅘ":("ㅗ","ㅏ"),"ㅙ":("ㅗ","ㅐ"),
+    "ㅚ":("ㅗ","ㅣ"),"ㅝ":("ㅜ","ㅓ"),"ㅞ":("ㅜ","ㅔ"),"ㅟ":("ㅜ","ㅣ"),
+    "ㅢ":("ㅡ","ㅣ")}
+
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
@@ -291,6 +306,36 @@ def j2h(lead, vowel, tail=0):
     return jamo_to_hangul(lead, vowel, tail)
 
 
+def compound_to_jamo(compound):
+    """Return a 2-tuple of jamo character constituents of a compound.
+    Note: Non-compound characters are echoed back.
+    """
+    
+    return JAMO_COMPOUNDS_MODERN_DICTIONARY.get(compound, compound)
+
+
+def jamo_to_compound(left, right):
+    """Return the compound jamo for the given jamo input.
+    Integers corresponding to U+11xx jamo codepoints, U+11xx jamo characters,
+    or HCJ are valid inputs.
+
+    Outputs a one-character jamo string.
+    """
+    # Internally, we convert everything to a jamo char,
+    # then pass it to _jamo_to_hangul_char
+    left = hcj_to_jamo(left) 
+    # NOTE: The second arg, position, defaults to 'vowel' which is not 
+    # the best fit here, but using "None" or a new category would throw 
+    # an error without editing hcj_to_jamo().
+    right = hcj_to_jamo(right)
+    if is_jamo(left) and is_jamo(right):
+        result = next(key for key, value in JAMO_COMPOUNDS_MODERN_DICTIONARY.items() if value == (left, right))
+        if is_jamo(result):
+            return result
+    raise InvalidJamoError("Could not synthesize characters to compound.",
+                           '\x00')
+    
+    
 def synth_hangul(string):
     """Convert jamo characters in a string into hcj as much as possible."""
     raise NotImplementedError
