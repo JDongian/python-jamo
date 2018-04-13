@@ -35,6 +35,40 @@ JAMO_VOWELS_MODERN = [chr(_) for _ in range(0x1161, 0x1176)]
 JAMO_TAILS = [chr(_) for _ in range(0x11A8, 0x1200)]
 JAMO_TAILS_MODERN = [chr(_) for _ in range(0x11A8, 0x11C3)]
 
+JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ","ㄸ","ㅃ","ㅆ","ㅉ"]
+JAMO_CONSONANT_CLUSTERS_MODERN = ["ㄳ", "ㄵ", "ㄶ", "ㄺ", "ㄻ", "ㄼ",
+                                  "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅄ"]
+JAMO_DIPTHONGS_MODERN = ["ㅘ","ㅙ","ㅚ","ㅝ","ㅞ","ㅟ","ㅢ"]
+JAMO_COMPOUNDS_MODERN = JAMO_DOUBLE_CONSONANTS_MODERN +\
+                        JAMO_CONSONANT_CLUSTERS_MODERN +\
+                        JAMO_DIPTHONGS_MODERN
+JAMO_COMPOUNDS_MODERN_DICTIONARY = {"ㄲ":("ㄱ","ㄱ"),"ㄸ":("ㄷ","ㄷ"),
+    "ㅃ":("ㅂ","ㅂ"),"ㅆ":("ㅅ","ㅅ"),"ㅉ":("ㅈ","ㅈ"), "ㄳ":("ㄱ","ㅅ"),
+    "ㄵ":("ㄴ","ㅈ"), "ㄶ":("ㄴ","ㅎ"), "ㄺ":("ㄹ","ㄱ"), "ㄻ":("ㄹ","ㅁ"),
+    "ㄼ":("ㄹ","ㅂ"), "ㄽ":("ㄹ","ㅅ"), "ㄾ":("ㄹ","ㅌ"), "ㄿ":("ㄹ","ㅍ"),
+    "ㅀ":("ㄹ","ㅎ"), "ㅄ":("ㅂ","ㅅ"), "ㅘ":("ㅗ","ㅏ"),"ㅙ":("ㅗ","ㅐ"),
+    "ㅚ":("ㅗ","ㅣ"),"ㅝ":("ㅜ","ㅓ"),"ㅞ":("ㅜ","ㅔ"),"ㅟ":("ㅜ","ㅣ"),
+    "ㅢ":("ㅡ","ㅣ")}
+
+JAMO_DOUBLE_CONSONANTS_ARCHAIC = ["ㅥ","ᄙ","ㅹ","ᄽ","ᄿ","ᅇ","ᇮ","ᅏ",
+     "ᅑ","ㆅ"]
+JAMO_TWO_CONSONANT_CLUSTERS_ARCHAIC = ["ᇃ","ᄓ","ㅦ","ᄖ","ㅧ","ㅨ","ᇉ",
+    "ᄗ","ᇋ","ᄘ","ㅪ","ㅬ","ᇘ","ㅭ","ᇚ","ᇛ","ㅮ","ㅯ","ㅰ","ᇠ","ᇡ",
+    "ㅲ","ᄟ","ㅳ","ᇣ","ㅶ","ᄨ","ㅷ","ᄪ","ᇥ","ㅺ","ㅻ","ㅼ","ᄰ","ᄱ",
+    "ㅽ","ᄵ","ㅾ","ᄷ","ᄸ","ᄹ","ᄺ","ᄻ","ᅁ","ᅂ","ᅃ","ᅄ","ᅅ","ᅆ",
+    "ᅈ","ᅉ","ᅊ","ᅋ","ᇬ","ᇭ","ㆂ","ㆃ","ᇯ","ᅍ","ᅒ","ᅓ","ᅖ","ᇵ",
+    "ᇶ","ᇷ","ᇸ"]
+JAMO_THREE_CONSONANT_CLUSTERS_ARCHAIC = ["ᇄ","ㅩ","ᇏ","ᇑ","ᇒ","ㅫ",
+    "ᇔ","ᇕ","ᇖ","ᇞ","ㅴ","ㅵ","ᄤ","ᄥ","ᄦ","ᄳ","ᄴ"]
+JAMO_CONSONANT_CLUSTERS_ARCHAIC = JAMO_TWO_CONSONANT_CLUSTERS_ARCHAIC +\
+                                  JAMO_THREE_CONSONANT_CLUSTERS_ARCHAIC
+JAMO_DIPTHONGS_ARCHAIC = ["ᆜ","ᆝ","ᆢ","ᅷ","ᅸ","ᅹ","ᅺ","ᅻ","ᅼ","ᅽ",
+    "ᅾ","ᅿ","ᆀ","ᆁ","ᆂ","ᆃ","ㆇ","ㆈ","ᆆ","ᆇ","ㆉ","ᆉ","ᆊ","ᆋ",
+    "ᆌ","ᆍ","ᆎ","ᆏ","ᆐ","ㆊ","ㆋ","ᆓ","ㆌ","ᆕ","ᆖ","ᆗ","ᆘ","ᆙ",
+    "ᆚ","ᆛ","ᆟ","ᆠ","ㆎ"]
+JAMO_COMPOUNDS_ARCHAIC = JAMO_CONSONANT_CLUSTERS_ARCHAIC +\
+                         JAMO_DIPTHONGS_ARCHAIC
+
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
@@ -232,7 +266,6 @@ def hangul_to_jamo(hangul_string):
 
     hangul_to_jamo is the generator version of h2j, the string version.
     """
-
     return (_ for _ in
             chain.from_iterable(_hangul_char_to_jamo(_) for _ in
                                 hangul_string))
@@ -247,7 +280,6 @@ def h2j(hangul_string):
 
     h2j is the string version of hangul_to_jamo, the generator version.
     """
-
     return ''.join(hangul_to_jamo(hangul_string))
 
 
@@ -287,8 +319,38 @@ def j2h(lead, vowel, tail=0):
     This function is defined solely for naming conisistency with
     jamo_to_hangul.
     """
-
     return jamo_to_hangul(lead, vowel, tail)
+
+
+def decompose_jamo(compound):
+    """Return a tuple of jamo character constituents of a compound.
+    Note: Non-compound characters are echoed back.
+
+    WARNING: Archaic jamo compounds will raise NotImplementedError.
+    """
+    if compound in JAMO_COMPOUNDS_ARCHAIC:
+      raise NotImplementedError
+    return JAMO_COMPOUNDS_MODERN_DICTIONARY.get(compound, compound)
+
+
+def compose_jamo(*parts):
+    """Return the compound jamo for the given jamo input.
+    Integers corresponding to U+11xx jamo codepoints, U+11xx jamo characters,
+    or HCJ are valid inputs.
+
+    Outputs a one-character jamo string.
+
+    WARNING: Archaic jamo compounds will raise NotImplementedError.
+    """
+    # Internally, we convert everything to a jamo char,
+    # then pass it to _jamo_to_hangul_char
+    # NOTE: Relies on hcj_to_jamo not strictly requiring "position" arg.
+    jamo_parts = [hcj_to_jamo(_) for _ in parts]
+    for compound, parts in JAMO_COMPOUNDS_MODERN_DICTIONARY.items():
+      if jamo_parts == parts and is_jamo(compound):
+        return compound
+    raise InvalidJamoError("Could not synthesize characters to compound.",
+                           '\x00')
 
 
 def synth_hangul(string):
