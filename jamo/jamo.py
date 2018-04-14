@@ -12,6 +12,7 @@ from sys import stderr
 from itertools import chain
 import json
 import re
+import unicodedata
 
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -68,7 +69,7 @@ JAMO_DIPTHONGS_ARCHAIC = ["ᆜ","ᆝ","ᆢ","ᅷ","ᅸ","ᅹ","ᅺ","ᅻ","ᅼ",
     "ᆚ","ᆛ","ᆟ","ᆠ","ㆎ"]
 JAMO_COMPOUNDS_ARCHAIC = JAMO_CONSONANT_CLUSTERS_ARCHAIC +\
                          JAMO_DIPTHONGS_ARCHAIC
-
+JAMO_COMPOUNDS = JAMO_COMPOUNDS_MODERN + JAMO_COMPOUNDS_ARCHAIC
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
@@ -178,6 +179,34 @@ def is_hangul_char(character):
     excluding unassigned codes.
     """
     return 0xAC00 <= ord(character) <= 0xD7A3
+
+
+def is_jamo_compound(character):
+    """Test if a single character is a compound, i.e., a consonant 
+    cluster, double consonant, or dipthong.
+    """
+    if len(character) != 1:
+        raise TypeError('is_jamo_compound() expected a single character')
+    if is_jamo(character):
+        character_name = unicodedata.name(character)
+        if "-" in character_name:
+            return True
+        elif "SSANG" in character_name:
+            return True
+        elif "KAPYEOUN" in character_name:
+            return True
+        elif "W" in character_name: 
+            return True
+        #CHOSEONG YEORINHIEUH (ᅙ) and JONGSEONG YEORINHIEUH (ᇹ)
+        elif "YEORINHIEUH" in character_name: 
+            return True
+        #JUNGSEONG/LETTER OE (ᅬ) and YI (ᅴ)
+        elif "YI" in character_name or "OE" in character_name:
+          return True
+        # LETTER ARAEAE (ㆎ)
+        elif "ARAEAE" in character_name:
+            return True
+    return False
 
 
 def get_jamo_class(jamo):
@@ -328,6 +357,10 @@ def decompose_jamo(compound):
 
     WARNING: Archaic jamo compounds will raise NotImplementedError.
     """
+    if len(compound) != 1:
+      raise TypeError("decompose_jamo() expects a single character,",
+                      "but received", type(compound), "length", 
+                      len(compound))
     if compound in JAMO_COMPOUNDS_ARCHAIC:
       raise NotImplementedError
     return JAMO_COMPOUNDS_MODERN_DICTIONARY.get(compound, compound)
@@ -335,12 +368,13 @@ def decompose_jamo(compound):
 
 def compose_jamo(*parts):
     """Return the compound jamo for the given jamo input.
-    Integers corresponding to U+11xx jamo codepoints, U+11xx jamo characters,
-    or HCJ are valid inputs.
+    Integers corresponding to U+11xx jamo codepoints, U+11xx jamo 
+    characters, or HCJ are valid inputs.
 
     Outputs a one-character jamo string.
 
-    WARNING: Archaic jamo compounds will raise NotImplementedError.
+    WARNING: Archaic jamo compounds not implemented, will raise 
+    InvalidJamoError.
     """
     # Internally, we convert everything to a jamo char,
     # then pass it to _jamo_to_hangul_char
