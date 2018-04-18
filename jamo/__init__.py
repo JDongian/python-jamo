@@ -10,5 +10,7 @@ from .jamo import (JAMO_LEADS, JAMO_LEADS_MODERN,
                    hcj_to_jamo, hcj2j,
                    jamo_to_hangul, j2h,
                    hangul_to_jamo, h2j,
+                   compose_jamo, decompose_jamo,
+                   is_jamo_compound,
                    InvalidJamoError)
 __version__ = '0.4.1'
