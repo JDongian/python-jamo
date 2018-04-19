@@ -36,40 +36,74 @@ JAMO_VOWELS_MODERN = [chr(_) for _ in range(0x1161, 0x1176)]
 JAMO_TAILS = [chr(_) for _ in range(0x11A8, 0x1200)]
 JAMO_TAILS_MODERN = [chr(_) for _ in range(0x11A8, 0x11C3)]
 
-JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ","ㄸ","ㅃ","ㅆ","ㅉ"]
-JAMO_CONSONANT_CLUSTERS_MODERN = ["ㄳ", "ㄵ", "ㄶ", "ㄺ", "ㄻ", "ㄼ",
-                                  "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅄ"]
-JAMO_DIPTHONGS_MODERN = ["ㅘ","ㅙ","ㅚ","ㅝ","ㅞ","ㅟ","ㅢ"]
-JAMO_COMPOUNDS_MODERN = JAMO_DOUBLE_CONSONANTS_MODERN +\
-                        JAMO_CONSONANT_CLUSTERS_MODERN +\
-                        JAMO_DIPTHONGS_MODERN
-JAMO_COMPOUNDS_MODERN_DICTIONARY = {"ㄲ":("ㄱ","ㄱ"),"ㄸ":("ㄷ","ㄷ"),
-    "ㅃ":("ㅂ","ㅂ"),"ㅆ":("ㅅ","ㅅ"),"ㅉ":("ㅈ","ㅈ"), "ㄳ":("ㄱ","ㅅ"),
-    "ㄵ":("ㄴ","ㅈ"), "ㄶ":("ㄴ","ㅎ"), "ㄺ":("ㄹ","ㄱ"), "ㄻ":("ㄹ","ㅁ"),
-    "ㄼ":("ㄹ","ㅂ"), "ㄽ":("ㄹ","ㅅ"), "ㄾ":("ㄹ","ㅌ"), "ㄿ":("ㄹ","ㅍ"),
-    "ㅀ":("ㄹ","ㅎ"), "ㅄ":("ㅂ","ㅅ"), "ㅘ":("ㅗ","ㅏ"),"ㅙ":("ㅗ","ㅐ"),
-    "ㅚ":("ㅗ","ㅣ"),"ㅝ":("ㅜ","ㅓ"),"ㅞ":("ㅜ","ㅔ"),"ㅟ":("ㅜ","ㅣ"),
-    "ㅢ":("ㅡ","ㅣ")}
+# Hangul letters
+JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"]
+JAMO_CONSONANT_CLUSTERS_MODERN = ["ㄳ", "ㄵ", "ㄶ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ",
+                                  "ㄿ", "ㅀ", "ㅄ"]
+JAMO_DIPTHONGS_MODERN = ["ㅘ", "ㅙ", "ㅚ", "ㅝ", "ㅞ", "ㅟ", "ㅢ"]
 
-JAMO_DOUBLE_CONSONANTS_ARCHAIC = ["ㅥ","ᄙ","ㅹ","ᄽ","ᄿ","ᅇ","ᇮ","ᅏ",
-     "ᅑ","ㆅ"]
-JAMO_TWO_CONSONANT_CLUSTERS_ARCHAIC = ["ᇃ","ᄓ","ㅦ","ᄖ","ㅧ","ㅨ","ᇉ",
-    "ᄗ","ᇋ","ᄘ","ㅪ","ㅬ","ᇘ","ㅭ","ᇚ","ᇛ","ㅮ","ㅯ","ㅰ","ᇠ","ᇡ",
-    "ㅲ","ᄟ","ㅳ","ᇣ","ㅶ","ᄨ","ㅷ","ᄪ","ᇥ","ㅺ","ㅻ","ㅼ","ᄰ","ᄱ",
-    "ㅽ","ᄵ","ㅾ","ᄷ","ᄸ","ᄹ","ᄺ","ᄻ","ᅁ","ᅂ","ᅃ","ᅄ","ᅅ","ᅆ",
-    "ᅈ","ᅉ","ᅊ","ᅋ","ᇬ","ᇭ","ㆂ","ㆃ","ᇯ","ᅍ","ᅒ","ᅓ","ᅖ","ᇵ",
-    "ᇶ","ᇷ","ᇸ"]
-JAMO_THREE_CONSONANT_CLUSTERS_ARCHAIC = ["ᇄ","ㅩ","ᇏ","ᇑ","ᇒ","ㅫ",
-    "ᇔ","ᇕ","ᇖ","ᇞ","ㅴ","ㅵ","ᄤ","ᄥ","ᄦ","ᄳ","ᄴ"]
+# Positional forms
+JAMO_POSITIONAL_DOUBLE_CONSONANTS = [
+        "ᄁ", "ᄄ", "ᄈ", "ᄊ", "ᄍ", "ᄔ", "ᄙ", "ᄥ", "ᄬ", "ᄴ", "ᄽ", "ᄿ",
+        "ᅇ", "ᅏ", "ᅑ", "ᅘ", "ᆢ", "ᆩ", "ᆻ", "ᇐ", "ᇖ", "ᇞ", "ᇭ", "ᇮ",
+        "ᇿ"]
+JAMO_POSITIONAL_CLUSTERS = [
+        "ᄓ", "ᄕ", "ᄖ", "ᄗ", "ᄘ", "ᄚ", "ᄜ", "ᄞ", "ᄟ", "ᄠ", "ᄡ", "ᄢ",
+        "ᄣ", "ᄤ", "ᄥ", "ᄦ", "ᄧ", "ᄨ", "ᄩ", "ᄪ", "ᄭ", "ᄮ", "ᄯ", "ᄰ",
+        "ᄱ", "ᄲ", "ᄳ", "ᄴ", "ᄵ", "ᄶ", "ᄷ", "ᄸ", "ᄹ", "ᄺ", "ᄻ", "ᅁ",
+        "ᅂ", "ᅃ", "ᅄ", "ᅅ", "ᅆ", "ᅈ", "ᅉ", "ᅊ", "ᅋ", "ᅍ", "ᅒ", "ᅓ",
+        "ᅖ", "ᅚ", "ᅛ", "ᅜ", "ᅝ", "ᅞ", "ᅶ", "ᅷ", "ᅸ", "ᅹ", "ᅺ", "ᅻ",
+        "ᅼ", "ᅽ", "ᅾ", "ᅿ", "ᆀ", "ᆁ", "ᆂ", "ᆃ", "ᆄ", "ᆅ", "ᆆ", "ᆇ",
+        "ᆈ", "ᆉ", "ᆊ", "ᆋ", "ᆌ", "ᆍ", "ᆎ", "ᆏ", "ᆐ", "ᆑ", "ᆒ", "ᆓ",
+        "ᆔ", "ᆕ", "ᆖ", "ᆗ", "ᆘ", "ᆙ", "ᆚ", "ᆛ", "ᆜ", "ᆝ", "ᆟ", "ᆠ",
+        "ᆡ", "ᆣ", "ᆤ", "ᆥ", "ᆦ", "ᆧ", "ᆪ", "ᆬ", "ᆭ", "ᆰ", "ᆱ", "ᆲ",
+        "ᆳ", "ᆴ", "ᆵ", "ᆶ", "ᆹ", "ᇃ", "ᇄ", "ᇅ", "ᇆ", "ᇇ", "ᇈ", "ᇉ",
+        "ᇊ", "ᇋ", "ᇌ", "ᇍ", "ᇎ", "ᇏ", "ᇑ", "ᇒ", "ᇓ", "ᇔ", "ᇕ", "ᇖ",
+        "ᇗ", "ᇘ", "ᇙ", "ᇚ", "ᇛ", "ᇜ", "ᇝ", "ᇞ", "ᇟ", "ᇠ", "ᇡ", "ᇣ",
+        "ᇤ", "ᇥ", "ᇧ", "ᇨ", "ᇩ", "ᇪ", "ᇬ", "ᇭ", "ᇯ", "ᇱ", "ᇲ", "ᇳ",
+        "ᇵ", "ᇶ", "ᇷ", "ᇸ", "ᇺ", "ᇻ", "ᇼ", "ᇽ", "ᇾ"]
+JAMO_POSITIONAL_DIPTHONGS = [
+        "ᅪ", "ᅫ", "ᅯ", "ᅰ", "ᅱ", "ᄛ", "ᄝ", "ᄫ", "ᄬ", "ᅗ", "ᇕ", "ᇢ",
+        "ᇦ", "ᇴ", "ᅙ", "ᇙ", "ᇹ", "ᅬ", "ᅴ", "ᆗ"]
+JAMO_POSITIONAL_COMPOUNDS = JAMO_POSITIONAL_DOUBLE_CONSONANTS +\
+                            JAMO_POSITIONAL_CLUSTERS +\
+                            JAMO_POSITIONAL_DIPTHONGS
+
+JAMO_COMPOUNDS_MODERN = JAMO_DOUBLE_CONSONANTS_MODERN +\
+                        JAMO_CONSONANT_CLUSTERS_MODERN + JAMO_DIPTHONGS_MODERN
+JAMO_COMPOUNDS_MODERN_DICTIONARY = {
+        "ㄲ": ("ㄱ", "ㄱ"), "ㄸ": ("ㄷ", "ㄷ"), "ㅃ": ("ㅂ", "ㅂ"),
+        "ㅆ": ("ㅅ", "ㅅ"), "ㅉ": ("ㅈ", "ㅈ"), "ㄳ": ("ㄱ", "ㅅ"),
+        "ㄵ": ("ㄴ", "ㅈ"), "ㄶ": ("ㄴ", "ㅎ"), "ㄺ": ("ㄹ", "ㄱ"),
+        "ㄻ": ("ㄹ", "ㅁ"), "ㄼ": ("ㄹ", "ㅂ"), "ㄽ": ("ㄹ", "ㅅ"),
+        "ㄾ": ("ㄹ", "ㅌ"), "ㄿ": ("ㄹ", "ㅍ"), "ㅀ": ("ㄹ", "ㅎ"),
+        "ㅄ": ("ㅂ", "ㅅ"), "ㅘ": ("ㅗ", "ㅏ"), "ㅙ": ("ㅗ", "ㅐ"),
+        "ㅚ": ("ㅗ", "ㅣ"), "ㅝ": ("ㅜ", "ㅓ"), "ㅞ": ("ㅜ", "ㅔ"),
+        "ㅟ": ("ㅜ", "ㅣ"), "ㅢ": ("ㅡ", "ㅣ")}
+
+JAMO_DOUBLE_CONSONANTS_ARCHAIC = ["ㅥ", "ᄙ", "ㅹ", "ᄽ", "ᄿ", "ᅇ", "ᇮ", "ᅏ",
+                                  "ᅑ", "ㆅ"]
+JAMO_TWO_CONSONANT_CLUSTERS_ARCHAIC = [
+        "ᇃ", "ᄓ", "ㅦ", "ᄖ", "ㅧ", "ㅨ", "ᇉ", "ᄗ", "ᇋ", "ᄘ", "ㅪ", "ㅬ",
+        "ᇘ", "ㅭ", "ᇚ", "ᇛ", "ㅮ", "ㅯ", "ㅰ", "ᇠ", "ᇡ", "ㅲ", "ᄟ", "ㅳ",
+        "ᇣ", "ㅶ", "ᄨ", "ㅷ", "ᄪ", "ᇥ", "ㅺ", "ㅻ", "ㅼ", "ᄰ", "ᄱ", "ㅽ",
+        "ᄵ", "ㅾ", "ᄷ", "ᄸ", "ᄹ", "ᄺ", "ᄻ", "ᅁ", "ᅂ", "ᅃ", "ᅄ", "ᅅ",
+        "ᅆ", "ᅈ", "ᅉ", "ᅊ", "ᅋ", "ᇬ", "ᇭ", "ㆂ", "ㆃ", "ᇯ", "ᅍ", "ᅒ",
+        "ᅓ", "ᅖ", "ᇵ", "ᇶ", "ᇷ", "ᇸ"]
+JAMO_THREE_CONSONANT_CLUSTERS_ARCHAIC = ["ᇄ", "ㅩ", "ᇏ", "ᇑ", "ᇒ", "ㅫ",
+                                         "ᇔ", "ᇕ", "ᇖ", "ᇞ", "ㅴ", "ㅵ",
+                                         "ᄤ", "ᄥ", "ᄦ", "ᄳ", "ᄴ"]
 JAMO_CONSONANT_CLUSTERS_ARCHAIC = JAMO_TWO_CONSONANT_CLUSTERS_ARCHAIC +\
                                   JAMO_THREE_CONSONANT_CLUSTERS_ARCHAIC
-JAMO_DIPTHONGS_ARCHAIC = ["ᆜ","ᆝ","ᆢ","ᅷ","ᅸ","ᅹ","ᅺ","ᅻ","ᅼ","ᅽ",
-    "ᅾ","ᅿ","ᆀ","ᆁ","ᆂ","ᆃ","ㆇ","ㆈ","ᆆ","ᆇ","ㆉ","ᆉ","ᆊ","ᆋ",
-    "ᆌ","ᆍ","ᆎ","ᆏ","ᆐ","ㆊ","ㆋ","ᆓ","ㆌ","ᆕ","ᆖ","ᆗ","ᆘ","ᆙ",
-    "ᆚ","ᆛ","ᆟ","ᆠ","ㆎ"]
+JAMO_DIPTHONGS_ARCHAIC = [
+        "ᆜ", "ᆝ", "ᆢ", "ᅷ", "ᅸ", "ᅹ", "ᅺ", "ᅻ", "ᅼ", "ᅽ", "ᅾ", "ᅿ",
+        "ᆀ", "ᆁ", "ᆂ", "ᆃ", "ㆇ", "ㆈ", "ᆆ", "ᆇ", "ㆉ", "ᆉ", "ᆊ", "ᆋ",
+        "ᆌ", "ᆍ", "ᆎ", "ᆏ", "ᆐ", "ㆊ", "ㆋ", "ᆓ", "ㆌ", "ᆕ", "ᆖ", "ᆗ",
+        "ᆘ", "ᆙ", "ᆚ", "ᆛ", "ᆟ", "ᆠ", "ㆎ"]
 JAMO_COMPOUNDS_ARCHAIC = JAMO_CONSONANT_CLUSTERS_ARCHAIC +\
                          JAMO_DIPTHONGS_ARCHAIC
 JAMO_COMPOUNDS = JAMO_COMPOUNDS_MODERN + JAMO_COMPOUNDS_ARCHAIC
+
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
@@ -182,12 +216,16 @@ def is_hangul_char(character):
 
 
 def is_jamo_compound(character):
-    """Test if a single character is a compound, i.e., a consonant 
+    """Test if a single character is a compound, i.e., a consonant
     cluster, double consonant, or dipthong.
     """
     if len(character) != 1:
-        raise TypeError('is_jamo_compound() expected a single character')
+        return False
+        # Consider instead:
+        # raise TypeError('is_jamo_compound() expected a single character')
     if is_jamo(character):
+        # Once JAMO_COMPOUNDS is more comprehensive replace with:
+        # return character in JAMO_COMPOUNDS
         character_name = unicodedata.name(character)
         if "-" in character_name:
             return True
@@ -195,14 +233,14 @@ def is_jamo_compound(character):
             return True
         elif "KAPYEOUN" in character_name:
             return True
-        elif "W" in character_name: 
+        elif "W" in character_name:
             return True
-        #CHOSEONG YEORINHIEUH (ᅙ) and JONGSEONG YEORINHIEUH (ᇹ)
-        elif "YEORINHIEUH" in character_name: 
+        # CHOSEONG YEORINHIEUH (ᅙ) and JONGSEONG YEORINHIEUH (ᇹ)
+        elif "YEORINHIEUH" in character_name:
             return True
-        #JUNGSEONG/LETTER OE (ᅬ) and YI (ᅴ)
+        # JUNGSEONG/LETTER OE (ᅬ) and YI (ᅴ)
         elif "YI" in character_name or "OE" in character_name:
-          return True
+            return True
         # LETTER ARAEAE (ㆎ)
         elif "ARAEAE" in character_name:
             return True
@@ -358,33 +396,48 @@ def decompose_jamo(compound):
     WARNING: Archaic jamo compounds will raise NotImplementedError.
     """
     if len(compound) != 1:
-      raise TypeError("decompose_jamo() expects a single character,",
-                      "but received", type(compound), "length", 
-                      len(compound))
+        raise TypeError("decompose_jamo() expects a single character,",
+                        "but received", type(compound), "length",
+                        len(compound))
+    if compound not in JAMO_COMPOUNDS:
+        # Strict version:
+        # raise TypeError("decompose_jamo() expects a compound jamo,",
+        #                 "but received", compound)
+        return compound
     if compound in JAMO_COMPOUNDS_ARCHAIC:
-      raise NotImplementedError
+        raise NotImplementedError
+    if is_jamo(compound) and not is_jamo_modern(compound):
+        raise NotImplementedError
     return JAMO_COMPOUNDS_MODERN_DICTIONARY.get(compound, compound)
 
 
 def compose_jamo(*parts):
     """Return the compound jamo for the given jamo input.
-    Integers corresponding to U+11xx jamo codepoints, U+11xx jamo 
+    Integers corresponding to U+11xx jamo codepoints, U+11xx jamo
     characters, or HCJ are valid inputs.
 
     Outputs a one-character jamo string.
 
-    WARNING: Archaic jamo compounds not implemented, will raise 
+    WARNING: Archaic jamo compounds not implemented, will raise
     InvalidJamoError.
     """
     # Internally, we convert everything to a jamo char,
     # then pass it to _jamo_to_hangul_char
     # NOTE: Relies on hcj_to_jamo not strictly requiring "position" arg.
-    jamo_parts = [hcj_to_jamo(_) for _ in parts]
-    for compound, parts in JAMO_COMPOUNDS_MODERN_DICTIONARY.items():
-      if jamo_parts == parts and is_jamo(compound):
-        return compound
-    raise InvalidJamoError("Could not synthesize characters to compound.",
-                           '\x00')
+    for p in parts:
+        if not (type(p) == str and len(p) == 1 and 2 <= len(parts) <= 3):
+            raise TypeError("compose_jamo() expected 2-3 single characters " +
+                            "but received " + str(parts),
+                            '\x00')
+    hcparts = [j2hcj(_) for _ in parts]
+    for compound, dict_parts in JAMO_COMPOUNDS_MODERN_DICTIONARY.items():
+        hcdict_parts = [j2hcj(_) for _ in dict_parts]
+        if hcparts == hcdict_parts and is_jamo(compound):
+            return compound
+    raise InvalidJamoError(
+            "Could not synthesize characters to compound: " + ", ".join(
+                    str(_) + "(U+" + str(hex(ord(_)))[2:] +
+                    ")" for _ in parts), '\x00')
 
 
 def synth_hangul(string):
