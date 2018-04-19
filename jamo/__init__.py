@@ -13,4 +13,4 @@ from .jamo import (JAMO_LEADS, JAMO_LEADS_MODERN,
                    compose_jamo, decompose_jamo,
                    is_jamo_compound,
                    InvalidJamoError)
-__version__ = '0.4.1'
+__version__ = '0.4.2'

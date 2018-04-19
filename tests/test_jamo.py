@@ -6,7 +6,6 @@ import jamo
 import random
 import itertools
 import io
-import unicodedata
 
 
 # See http://www.unicode.org/charts/PDF/U1100.pdf
@@ -225,8 +224,8 @@ class TestJamo(unittest.TestCase):
                                              target=target)
 
         # Negative tests
-        _stderr = jamo.jamo.stderr
-        jamo.jamo.stderr = io.StringIO()
+        _stderr = jamo.stderr
+        jamo.stderr = io.StringIO()
         for _ in invalid_cases:
             try:
                 jamo.get_jamo_class(_)
@@ -237,9 +236,9 @@ class TestJamo(unittest.TestCase):
             try:
                 jamo.get_jamo_class(_)
                 assert False, "Accepted bad input without throwing exception."
-            except:
+            except AssertionError:
                 pass
-        jamo.jamo.stderr = _stderr
+        jamo.stderr = _stderr
 
     def test_jamo_to_hcj(self):
         """jamo_to_hcj tests
@@ -500,16 +499,16 @@ class TestJamo(unittest.TestCase):
                                           failure=trial)
 
         # Negative tests
-        _stderr = jamo.jamo.stderr
-        jamo.jamo.stderr = io.StringIO()
+        _stderr = jamo.stderr
+        jamo.stderr = io.StringIO()
         for _ in invalid_cases:
             try:
-                print(_)
+                # print(_)
                 jamo.jamo_to_hangul(*_)
                 assert False, "Accepted bad input without throwing exception."
             except jamo.InvalidJamoError:
                 pass
-        jamo.jamo.stderr = _stderr
+        jamo.stderr = _stderr
 
     def test_j2h(self):
         """j2h hardcoded tests.
@@ -530,116 +529,95 @@ class TestJamo(unittest.TestCase):
 
     def test_decompose_jamo(self):
         """decompose_jamo tests
-        Arguments should be compound jamo - double consonants, consonant 
+        Arguments should be compound jamo - double consonants, consonant
         clusters, or dipthongs.
 
-        Should output a tuple of non-compound jamo for every compound 
+        Should output a tuple of non-compound jamo for every compound
         jamo.
         """
-
-        # See http://www.unicode.org/charts/PDF/U1100.pdf
-        valid_jamo = (chr(_) for _ in range(0x1100, 0x1200))
-        # See http://www.unicode.org/charts/PDF/U3130.pdf
-        valid_hcj = itertools.chain((chr(_) for _ in range(0x3131, 0x3164)),
-                                    (chr(_) for _ in range(0x3165, 0x318f)))
-        # See http://www.unicode.org/charts/PDF/UA960.pdf
-        valid_extA = (chr(_) for _ in range(0xa960, 0xa97d))
-        # See http://www.unicode.org/charts/PDF/UD7B0.pdf
-        valid_extB = itertools.chain((chr(_) for _ in range(0xd7b0, 0xd7c7)),
-                                     (chr(_) for _ in range(0xd7cb, 0xd7fc)))
-
-        valid_jamo_all = itertools.chain(valid_jamo, valid_hcj, 
-                         valid_extA, valid_extB)
-
         invalid_hangul = _get_random_hangul(20)
-        invalid_other = "abABzyZY ,.:;~`―—–/!@#$%^&*()[]{}"       
-        
-        #TODO: Expand tests to be more comprehensive. 
-        #      Consider using unicode names, because clusters and 
-        #      doubles seem predictably named. I think
-        #      unicodedata.name(component).split()[-1] will be found 
-        #      in name(compound)
-        test_chars = ["ㄸ","ㅢ"]
-        target_chars = [("ㄷ","ㄷ"), ("ㅡ","ㅣ")]
-        
-        test_chars_idempotent = itertools.chain(invalid_hangul, 
-                                invalid_other)
-        target_chars_idempotent = test_chars_idempotent
-        
-        #invalid
-        invalid_strings = ["ab","ㄸㄲ"]
+        invalid_other = "abABzyZY ,.:;~`―—–/!@#$%^&*()[]{}"
 
-        
-        #not implemented 
-        not_implemented_archaic = ["ᇑ", "ᇲ", "ퟡ"]
-       
+        # TODO: Expand tests to be more comprehensive, maybe use unicode names.
+        test_chars = ["ㄸ", "ㅢ"]
+        target_chars = [("ㄷ", "ㄷ"), ("ㅡ", "ㅣ")]
+
+        test_chars_idempotent = list(itertools.chain(invalid_hangul,
+                                     invalid_other))
+        target_chars_idempotent = test_chars_idempotent
+
+        # Invalid
+        invalid_strings = ["ab", "ㄸㄲ"]
+
+        # Not implemented
+        not_implemented_archaics = ["ᇑ", "ᇲ", "ퟡ"]
+
         all_tests = itertools.chain(zip(test_chars, target_chars),
                                     zip(test_chars_idempotent,
                                         target_chars_idempotent))
 
         for test, target in all_tests:
             trial = jamo.decompose_jamo(test)
-            assert not is_jamo_compound(trial),\
+            assert not jamo.is_jamo_compound(trial),\
                 "decompose_jamo returned a compound"
-            assert 2 <= len(trial) <= 3,\
-                "decompose_jamo failed to return a tuple of 2-3 jamo"
-            for trial_char in trial:
-                assert jamo.is_jamo(trial_char),\
-                    "decompose_jamo returned non-jamo character"
+            # Test for strict version of decompose_jamo():
+            # assert 2 <= len(trial) <= 3,\
+            #     "decompose_jamo failed to return a tuple of 2-3 jamo " +\
+            #     "and instead returned " + str(trial) + " for " + str(test)
+            if trial != test:  # for lenient version ONLY
+                for trial_char in trial:
+                    assert jamo.is_jamo(trial_char),\
+                        "decompose_jamo returned non-jamo character"
             trial, target = ''.join(trial), ''.join(target)
             assert trial == target,\
                 ("Matched {test} to {trial}, but "
                  "expected {target}.").format(test=''.join(test),
                                               trial=trial,
                                               target=target)
-                                              
+
         # Negative tests
-        _stderr = jamo.jamo.stderr
-        jamo.jamo.stderr = io.StringIO()
-        for _ in invalid_strings:
+        _stderr = jamo.stderr
+        jamo.stderr = io.StringIO()
+        for test_string in invalid_strings:
             try:
-                jamo.decompose_jamo(_)
+                jamo.decompose_jamo(test_string)
                 assert False, "Accepted bad input without throwing exception."
-            except:
+            except (AssertionError, TypeError):
                 pass
-        for _ in not_implemented_archaic:
+        for not_implemented_archaic in not_implemented_archaics:
             try:
-                jamo.decompose_jamo(_)
-                assert False, "Accepted archaic jamo without throwing exception."
-            except:
+                jamo.decompose_jamo(not_implemented_archaic)
+                assert False, "Accepted archaic jamo without throwing " +\
+                    "exception."
+            except (AssertionError, NotImplementedError):
                 pass
-        jamo.jamo.stderr = _stderr
+        jamo.stderr = _stderr
 
     def test_compose_jamo(self):
         """compose_jamo tests
-        Arguments should be non-compound jamo that combine to form valid 
+        Arguments should be non-compound jamo that combine to form valid
         double consonants, consonant clusters, or dipthongs.
 
-        Should output a compound jamo for every valid combination of 
+        Should output a compound jamo for every valid combination of
         components and raise InvalidJamoError in all other cases.
         """
 
-        #TODO: Expand tests to be more comprehensive. 
-        #      Consider using unicode names, because clusters and 
-        #      doubles seem predictably named. I think
-        #      unicodedata.name(component).split()[-1] will be found 
-        #      in name(compound)
-        test_chars = [("ㄷ","ㄷ"), ("ㅡ","ㅣ")]
-        target_chars = ["ㄸ","ㅢ"]
-        
-        #invalid
-        invalid_cases = [("ㄷ","ㄷ","ㄷ"), ("ㅡ","ㄷ")]
-        
-        #not implemented 
-        not_implemented_archaic = [("ㄹ","ㅁ","ㄱ")]
-       
-        all_tests = zip(test_chars, target_chars)
+        # TODO: Expand tests to be more comprehensive, maybe use unicode names
+        test_chars = [("ㄷ", "ㄷ"), ("ᄃ", "ㄷ"), ("ᄃ", "ᄃ"), ("ㅡ", "ㅣ")]
+        target_chars = ["ㄸ", "ㄸ", "ㄸ", "ㅢ"]
 
+        # Invalid
+        invalid_cases = [("ㄷ", "ㄷ", "ㄷ"), ("ㅡ", "ㄷ")]
+
+        # Not implemented
+        not_implemented_archaics = [("ㄹ", "ㅁ", "ㄱ"), ("ㄹ", "ㄹ")]
+
+        all_tests = zip(test_chars, target_chars)
         for test, target in all_tests:
-            trial = jamo.compose_jamo(test)
+            trial = jamo.compose_jamo(*test)
             assert jamo.is_jamo(trial),\
-                    "compose_jamo returned non-jamo character"
-            assert is_jamo_compound(trial),\
+                "compose_jamo returned non-jamo character"
+            assert jamo.is_jamo_compound(trial),\
                 "compose_jamo returned non-compound"
             trial, target = ''.join(trial), ''.join(target)
             assert trial == target,\
@@ -647,43 +625,43 @@ class TestJamo(unittest.TestCase):
                  "expected {target}.").format(test=''.join(test),
                                               trial=trial,
                                               target=target)
-                                              
+
         # Negative tests
-        _stderr = jamo.jamo.stderr
-        jamo.jamo.stderr = io.StringIO()
-        for _ in invalid_cases:
+        _stderr = jamo.stderr
+        jamo.stderr = io.StringIO()
+        for invalid_case in invalid_cases:
             try:
-                jamo.compose_jamo(_)
+                jamo.compose_jamo(*invalid_case)
                 assert False, "Accepted bad input without throwing exception."
-            except:
+            except (AssertionError, TypeError, jamo.InvalidJamoError):
                 pass
-        for _ in not_implemented_archaic:
+        for not_implemented_archaic in not_implemented_archaics:
             try:
-                jamo.compose_jamo(_)
-                assert False, "Accepted unimplemented archaic input without throwing exception."
-            except:
+                jamo.compose_jamo(*not_implemented_archaic)
+                assert False, "Accepted unimplemented archaic input without" +\
+                              " throwing exception."
+            except (AssertionError, TypeError, jamo.InvalidJamoError):
                 pass
-        jamo.jamo.stderr = _stderr
+        jamo.stderr = _stderr
 
     def test_is_jamo_compound(self):
-        """Returns True for modern or archaic jamo compounds and False 
-        for others, raising a TypeError if receiving more than one 
+        """Returns True for modern or archaic jamo compounds and False
+        for others, raising a TypeError if receiving more than one
         character as input.
         """
-        valid_compounds = "ᄁᄄᄈᄊᄍᄓᄔᄕᄖᄗᄘᄙᄚᄛᄜᄝᄞᄟᄠᄡᄢᄣᄤᄥ" +\
-                    "ᄦᄧᄨᄩᄪᄫᄬᄭᄮᄯᄰᄱᄲᄳᄴᄵᄶᄷᄸᄹ ᄺᄻᄽᄿᅁᅂᅃ" +\
-                    "ᅄᅅᅆᅇᅈᅉᅊᅋᅍᅏᅑᅒᅓᅖᅗᅘᅙᅚᅛᅜᅝᅞᅪᅫᅬᅯᅰ" +\
-                    "ᅱᅴᅶᅷᅸᅹᅺᅻᅼᅽᅾᅿᆀᆁᆂᆃᆄᆅᆆᆇᆈᆉᆊᆋᆌᆍᆎ" +\
-                    "ᆏᆐᆑᆒᆓᆔᆕᆖᆗᆘᆙᆚᆛᆜᆝᆟᆠᆡᆢᆣᆤᆥᆦᆧᆩᆪᆬ" +\
-                    "ᆭᆰᆱᆲᆳᆴᆵᆶᆹᆻᇃᇄᇅᇆᇇᇈᇉᇊᇋᇌᇍᇎᇏᇐᇑᇒᇓ" +\
-                    "ᇔᇕᇖᇗᇘᇙᇚᇛᇜᇝᇞᇟᇠᇡᇢᇣᇤᇥᇦᇧᇨᇩᇪᇬᇭᇮᇯ" +\
-                    "ᇱᇲᇳᇴᇵᇶᇷᇸᇹᇺᇻᇼᇽᇾᇿㄲㄳㄵㄶㄸㄺㄻㄼㄽㄾㄿㅀ" +\
-                    "ㅃㅄㅆㅉㅘㅙㅚㅝㅞㅟㅢㅥㅦㅧㅨㅩㅪㅫㅬㅭㅮㅯㅰㅱㅲㅳㅴ" +\
-                    "ㅵ ㅶㅷㅸㅹㅺㅻㅼㅽㅾㆀㆂㆃㆄㆅㆆㆇㆈㆉㆊㆋㆌㆎꥠꥡꥢ" +\
-                    "ꥣꥤꥥꥦꥧꥨꥩꥪꥫꥬꥭꥮꥯꥰꥱꥲꥳꥴꥵ ꥶꥷꥸꥹꥺ" +\
-                    "ꥻꥼힰힱힲힳힴힵힶힷힸힹힺힻힼힽힾힿퟀퟁퟂퟃퟄퟅ" +\
-                    "ퟆퟋퟌퟍퟎퟏퟐퟑퟒퟓퟔퟕퟖퟗퟘퟙퟚퟛퟜퟝퟞퟟퟠퟡ" +\
-                    "ퟢퟣퟤퟥퟦퟧퟨퟩퟪퟫퟬퟭퟮퟯퟰퟱퟲퟳퟴퟵퟶퟷퟸퟹퟺퟻ"
+        valid_compounds = "ᄁᄄᄈᄊᄍᄓᄔᄕᄖᄗᄘᄙᄚᄛᄜᄝᄞᄟᄠᄡᄢᄣᄤᄥᄦᄧᄨ" +\
+            "ᄩᄪᄫᄬᄭᄮᄯᄰᄱᄲᄳᄴᄵᄶᄷᄸᄹᄺᄻᄽᄿᅁᅂᅃᅄᅅᅆᅇᅈᅉᅊᅋᅍᅏᅑ" +\
+            "ᅒᅓᅖᅗᅘᅙᅚᅛᅜᅝᅞᅪᅫᅬᅯᅰᅱᅴᅶᅷᅸᅹᅺᅻᅼᅽᅾᅿᆀᆁᆂᆃᆄᆅᆆ" +\
+            "ᆇᆈᆉᆊᆋᆌᆍᆎᆏᆐᆑᆒᆓᆔᆕᆖᆗᆘᆙᆚᆛᆜᆝᆟᆠᆡᆢᆣᆤᆥᆦᆧᆩᆪᆬ" +\
+            "ᆭᆰᆱᆲᆳᆴᆵᆶᆹᆻᇃᇄᇅᇆᇇᇈᇉᇊᇋᇌᇍᇎᇏᇐᇑᇒᇓᇔᇕᇖᇗᇘᇙᇚᇛ" +\
+            "ᇜᇝᇞᇟᇠᇡᇢᇣᇤᇥᇦᇧᇨᇩᇪᇬᇭᇮᇯᇱᇲᇳᇴᇵᇶᇷᇸᇹᇺᇻᇼᇽᇾ" +\
+            "ᇿㄲㄳㄵㄶㄸㄺㄻㄼㄽㄾㄿㅀㅃㅄㅆㅉㅘㅙㅚㅝㅞㅟㅢㅥㅦㅧㅨㅩㅪㅫㅬㅭㅮㅯ" +\
+            "ㅰㅱㅲㅳㅴㅵㅶㅷㅸㅹㅺㅻㅼㅽㅾㆀㆂㆃㆄㆅㆆㆇㆈㆉㆊㆋㆌㆎꥠꥡꥢꥣ" +\
+            "ꥤꥥꥦꥧꥨꥩꥪꥫꥬꥭꥮꥯꥰꥱꥲꥳꥴꥵꥶꥷꥸꥹꥺ" +\
+            "ꥻꥼힰힱힲힳힴힵힶힷힸힹힺힻힼힽힾힿퟀퟁퟂퟃퟄ" +\
+            "ퟅퟆퟋퟌퟍퟎퟏퟐퟑퟒퟓퟔퟕퟖퟗퟘퟙퟚퟛퟜퟝퟞퟟ" +\
+            "ퟠퟡퟢퟣퟤퟥퟦퟧퟨퟩퟪퟫퟬퟭퟮퟯퟰퟱퟲퟳퟴퟵퟶ" +\
+            "ퟷퟸퟹퟺퟻ"
 
         non_compound_jamo = "ᄀᄂᄃᄅᄆᄇᄉᄋᄌᄎᄏᄐᄑᄒᄼᄾᅀᅌᅎᅐᅔᅕ" +\
                             "ᅟᅠᅡᅢᅣᅤᅥᅦᅧᅨᅩᅭᅮᅲᅳᅵᆞᆨᆫᆮᆯᆷᆸ" +\
@@ -693,22 +671,22 @@ class TestJamo(unittest.TestCase):
         invalid_other = "abABzyZY ,.:;~`―—–/!@#$%^&*()[]{}"
 
         # Positive tests
-        for _ in itertools.chain(valid_compounds):
-            assert jamo.is_jamo_compound(_),\
-                ("Incorrectly decided U+{} "
-                 "was not a jamo compound.").format(hex(ord(_))[2:])
+        for valid_compound in itertools.chain(valid_compounds):
+            assert jamo.is_jamo_compound(valid_compound),\
+                ("Incorrectly decided U+{} was not a " +
+                 "jamo compound.").format(hex(ord(valid_compound))[2:])
         # Negative tests
-        for _ in itertools.chain(not_compound_jamo,
-                                 invalid_hangul,
-                                 invalid_other):
-            assert not jamo.is_jamo_compound(_),\
+        for invalid_case in itertools.chain(non_compound_jamo,
+                                            invalid_hangul,
+                                            invalid_other):
+            assert not jamo.is_jamo_compound(invalid_case),\
                 ("Incorrectly decided U+{} "
-                 "was jamo.").format(hex(ord(_))[2:])
-
+                 "was jamo.").format(hex(ord(invalid_case))[2:])
 
     def test_synth_hangul(self):
         # To be implemented in a future version
         pass
+
 
 if __name__ == "__main__":
     unittest.main()
