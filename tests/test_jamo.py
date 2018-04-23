@@ -8,19 +8,18 @@ import random
 import itertools
 import io
 
-### TEMPORARY WORKAROUND TO IMPORT JAMO
+# +++ TEMPORARY WORKAROUND TO IMPORT JAMO +++
 import os
 import sys
 # set current working directory to location of test_jamo.py to make
-# relative directory ("..") consistent regardless of where the file is launched from
+# relative directory ("..") consistent regardless of where the file is
+# launched from
 original_cwd = os.getcwd()
 os.chdir(sys.path[0])
 sys.path.append(os.path.abspath(os.path.join("..")))
 os.chdir(original_cwd)
 import jamo
-### END WORKAROUND TO IMPORT JAMO
-
-sys.path.append(os.getcwd())
+# +++ END WORKAROUND TO IMPORT JAMO +++
 
 # See http://www.unicode.org/charts/PDF/U1100.pdf
 _JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
@@ -420,7 +419,8 @@ class TestJamo(unittest.TestCase):
                                     vowel=hex(ord(target[1])),
                                     tail=hex(ord(target[2]))
                                     if len(target) == 3 else "",
-                                    failure=tuple([hex(ord(_)) for _ in trial]))\
+                                    failure=tuple([hex(ord(_)) for _ in
+                                                  trial]))\
                 if len(hangul) == 1 else\
                 ("Incorrectly converted {hangul} to "
                  "{failure}.".format(hangul=hangul,
@@ -703,4 +703,4 @@ class TestJamo(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main() # verbosity = 2)
+    unittest.main()  # verbosity = 2)
