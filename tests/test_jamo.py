@@ -2,11 +2,25 @@
 """Unit tests for functional tests on Hangul <-> jamo toolkit.
 """
 import unittest
-import jamo
+# ModuleNotFound Error
+# import jamo
 import random
 import itertools
 import io
 
+### TEMPORARY WORKAROUND TO IMPORT JAMO
+import os
+import sys
+# set current working directory to location of test_jamo.py to make
+# relative directory ("..") consistent regardless of where the file is launched from
+original_cwd = os.getcwd()
+os.chdir(sys.path[0])
+sys.path.append(os.path.join("..","jamo"))
+os.chdir(original_cwd)
+import jamo
+### END WORKAROUND TO IMPORT JAMO
+
+sys.path.append(os.getcwd())
 
 # See http://www.unicode.org/charts/PDF/U1100.pdf
 _JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
@@ -236,7 +250,7 @@ class TestJamo(unittest.TestCase):
             try:
                 jamo.get_jamo_class(_)
                 assert False, "Accepted bad input without throwing exception."
-            except AssertionError:
+            except (AssertionError, TypeError):
                 pass
         jamo.stderr = _stderr
 
@@ -689,4 +703,4 @@ class TestJamo(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity = 2)
