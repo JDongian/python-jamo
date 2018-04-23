@@ -15,7 +15,7 @@ import sys
 # relative directory ("..") consistent regardless of where the file is launched from
 original_cwd = os.getcwd()
 os.chdir(sys.path[0])
-sys.path.append(os.path.join("..","jamo"))
+sys.path.append(os.path.abspath(os.path.join("..")))
 os.chdir(original_cwd)
 import jamo
 ### END WORKAROUND TO IMPORT JAMO
@@ -238,8 +238,8 @@ class TestJamo(unittest.TestCase):
                                              target=target)
 
         # Negative tests
-        _stderr = jamo.stderr
-        jamo.stderr = io.StringIO()
+        _stderr = jamo.jamo.stderr
+        jamo.jamo.stderr = io.StringIO()
         for _ in invalid_cases:
             try:
                 jamo.get_jamo_class(_)
@@ -252,7 +252,7 @@ class TestJamo(unittest.TestCase):
                 assert False, "Accepted bad input without throwing exception."
             except (AssertionError, TypeError):
                 pass
-        jamo.stderr = _stderr
+        jamo.jamo.stderr = _stderr
 
     def test_jamo_to_hcj(self):
         """jamo_to_hcj tests
@@ -513,8 +513,8 @@ class TestJamo(unittest.TestCase):
                                           failure=trial)
 
         # Negative tests
-        _stderr = jamo.stderr
-        jamo.stderr = io.StringIO()
+        _stderr = jamo.jamo.stderr
+        jamo.jamo.stderr = io.StringIO()
         for _ in invalid_cases:
             try:
                 # print(_)
@@ -522,7 +522,7 @@ class TestJamo(unittest.TestCase):
                 assert False, "Accepted bad input without throwing exception."
             except jamo.InvalidJamoError:
                 pass
-        jamo.stderr = _stderr
+        jamo.jamo.stderr = _stderr
 
     def test_j2h(self):
         """j2h hardcoded tests.
@@ -590,8 +590,8 @@ class TestJamo(unittest.TestCase):
                                               target=target)
 
         # Negative tests
-        _stderr = jamo.stderr
-        jamo.stderr = io.StringIO()
+        _stderr = jamo.jamo.stderr
+        jamo.jamo.stderr = io.StringIO()
         for test_string in invalid_strings:
             try:
                 jamo.decompose_jamo(test_string)
@@ -605,7 +605,7 @@ class TestJamo(unittest.TestCase):
                     "exception."
             except (AssertionError, NotImplementedError):
                 pass
-        jamo.stderr = _stderr
+        jamo.jamo.stderr = _stderr
 
     def test_compose_jamo(self):
         """compose_jamo tests
@@ -641,8 +641,8 @@ class TestJamo(unittest.TestCase):
                                               target=target)
 
         # Negative tests
-        _stderr = jamo.stderr
-        jamo.stderr = io.StringIO()
+        _stderr = jamo.jamo.stderr
+        jamo.jamo.stderr = io.StringIO()
         for invalid_case in invalid_cases:
             try:
                 jamo.compose_jamo(*invalid_case)
@@ -656,7 +656,7 @@ class TestJamo(unittest.TestCase):
                               " throwing exception."
             except (AssertionError, TypeError, jamo.InvalidJamoError):
                 pass
-        jamo.stderr = _stderr
+        jamo.jamo.stderr = _stderr
 
     def test_is_jamo_compound(self):
         """Returns True for modern or archaic jamo compounds and False
@@ -703,4 +703,4 @@ class TestJamo(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(verbosity = 2)
+    unittest.main() # verbosity = 2)
