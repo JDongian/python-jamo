@@ -10,7 +10,6 @@ http://python-jamo.readthedocs.org/ko/latest/
 import os
 from sys import stderr
 from itertools import chain
-import json
 import re
 import unicodedata
 
@@ -22,19 +21,27 @@ _JAMO_LEAD_OFFSET = 0x10ff
 _JAMO_VOWEL_OFFSET = 0x1160
 _JAMO_TAIL_OFFSET = 0x11a7
 
-with open(os.path.join(_ROOT, 'data', "U+11xx.json"), 'r') as namedata:
-    _JAMO_TO_NAME = json.load(namedata)
-_JAMO_REVERSE_LOOKUP = {name: char for char, name in _JAMO_TO_NAME.items()}
-with open(os.path.join(_ROOT, 'data', "U+31xx.json"), 'r') as namedata:
-    _HCJ_TO_NAME = json.load(namedata)
-_HCJ_REVERSE_LOOKUP = {name: char for char, name in _HCJ_TO_NAME.items()}
-
 JAMO_LEADS = [chr(_) for _ in range(0x1100, 0x115F)]
 JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
 JAMO_VOWELS = [chr(_) for _ in range(0x1161, 0x11A8)]
 JAMO_VOWELS_MODERN = [chr(_) for _ in range(0x1161, 0x1176)]
 JAMO_TAILS = [chr(_) for _ in range(0x11A8, 0x1200)]
 JAMO_TAILS_MODERN = [chr(_) for _ in range(0x11A8, 0x11C3)]
+
+# See http://www.unicode.org/charts/PDF/U1100.pdf
+valid_jamo = (chr(_) for _ in range(0x1100, 0x1200))
+# See http://www.unicode.org/charts/PDF/U3130.pdf
+valid_hcj = chain((chr(_) for _ in range(0x3131, 0x3164)),
+                  (chr(_) for _ in range(0x3165, 0x318f)))
+# See http://www.unicode.org/charts/PDF/UA960.pdf
+valid_extA = (chr(_) for _ in range(0xa960, 0xa97d))
+# See http://www.unicode.org/charts/PDF/UD7B0.pdf
+valid_extB = chain((chr(_) for _ in range(0xd7b0, 0xd7c7)),
+                   (chr(_) for _ in range(0xd7cb, 0xd7fc)))
+valid_hangul = [chr(_) for _ in range(0xac00, 0xd7a4)]
+
+valid_all_hangul_and_jamo = chain(valid_jamo, valid_hcj, valid_extA,
+                                            valid_extB, valid_hangul)
 
 # Hangul letters
 JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"]
@@ -69,6 +76,28 @@ JAMO_POSITIONAL_COMPOUNDS = JAMO_POSITIONAL_DOUBLE_CONSONANTS +\
                             JAMO_POSITIONAL_CLUSTERS +\
                             JAMO_POSITIONAL_DIPTHONGS
 
+JAMO_POSITIONAL_COMPOUNDS.extend([
+        'ᄁ', 'ᄄ', 'ᄈ', 'ᄊ', 'ᄍ', 'ᄔ', 'ᄕ', 'ᄙ', 'ᄚ', 'ᄛ', 'ᄜ', 'ᄝ',
+        'ᄞ', 'ᄠ', 'ᄡ', 'ᄢ', 'ᄣ', 'ᄧ', 'ᄩ', 'ᄫ', 'ᄬ', 'ᄭ', 'ᄮ', 'ᄯ',
+        'ᄲ', 'ᄶ', 'ᄽ', 'ᄿ', 'ᅇ', 'ᅏ', 'ᅑ', 'ᅗ', 'ᅘ', 'ᅙ', 'ᅚ', 'ᅛ',
+        'ᅜ', 'ᅝ', 'ᅞ', 'ᅪ', 'ᅫ', 'ᅬ', 'ᅯ', 'ᅰ', 'ᅱ', 'ᅴ', 'ᅶ', 'ᆄ',
+        'ᆅ', 'ᆈ', 'ᆑ', 'ᆒ', 'ᆔ', 'ᆡ', 'ᆣ', 'ᆤ', 'ᆥ', 'ᆦ', 'ᆧ', 'ᆩ',
+        'ᆪ', 'ᆬ', 'ᆭ', 'ᆰ', 'ᆱ', 'ᆲ', 'ᆳ', 'ᆴ', 'ᆵ', 'ᆶ', 'ᆹ', 'ᆻ',
+        'ᇅ', 'ᇆ', 'ᇇ', 'ᇈ', 'ᇊ', 'ᇌ', 'ᇍ', 'ᇎ', 'ᇐ', 'ᇓ', 'ᇗ', 'ᇙ',
+        'ᇜ', 'ᇝ', 'ᇟ', 'ᇢ', 'ᇤ', 'ᇦ', 'ᇧ', 'ᇨ', 'ᇩ', 'ᇪ', 'ᇮ', 'ᇱ',
+        'ᇲ', 'ᇳ', 'ᇴ', 'ᇹ', 'ᇺ', 'ᇻ', 'ᇼ', 'ᇽ', 'ᇾ', 'ᇿ', 'ㅥ',
+        'ㅱ', 'ㅸ', 'ㅹ', 'ㆀ', 'ㆄ', 'ㆅ', 'ㆆ', 'ꥠ', 'ꥡ', 'ꥢ', 'ꥣ',
+        'ꥤ', 'ꥥ', 'ꥦ', 'ꥧ', 'ꥨ', 'ꥩ', 'ꥪ', 'ꥫ', 'ꥬ', 'ꥭ',
+        'ꥮ', 'ꥯ', 'ꥰ', 'ꥱ', 'ꥲ', 'ꥳ', 'ꥴ', 'ꥵ', 'ꥶ', 'ꥷ',
+        'ꥸ', 'ꥹ', 'ꥺ', 'ꥻ', 'ꥼ', 'ힰ', 'ힱ', 'ힲ', 'ힳ', 'ힴ',
+        'ힵ', 'ힶ', 'ힷ', 'ힸ', 'ힹ', 'ힺ', 'ힻ', 'ힼ', 'ힽ', 'ힾ',
+        'ힿ', 'ퟀ', 'ퟁ', 'ퟂ', 'ퟃ', 'ퟄ', 'ퟅ', 'ퟆ', 'ퟋ', 'ퟌ',
+        'ퟍ', 'ퟎ', 'ퟏ', 'ퟐ', 'ퟑ', 'ퟒ', 'ퟓ', 'ퟔ', 'ퟕ', 'ퟖ',
+        'ퟗ', 'ퟘ', 'ퟙ', 'ퟚ', 'ퟛ', 'ퟜ', 'ퟝ', 'ퟞ', 'ퟟ', 'ퟠ',
+        'ퟡ', 'ퟢ', 'ퟣ', 'ퟤ', 'ퟥ', 'ퟦ', 'ퟧ', 'ퟨ', 'ퟩ', 'ퟪ',
+        'ퟫ', 'ퟬ', 'ퟭ', 'ퟮ', 'ퟯ', 'ퟰ', 'ퟱ', 'ퟲ', 'ퟳ', 'ퟴ',
+        'ퟵ', 'ퟶ', 'ퟷ', 'ퟸ', 'ퟹ', 'ퟺ', 'ퟻ'])
+
 JAMO_COMPOUNDS_MODERN = JAMO_DOUBLE_CONSONANTS_MODERN +\
                         JAMO_CONSONANT_CLUSTERS_MODERN + JAMO_DIPTHONGS_MODERN
 JAMO_COMPOUNDS_MODERN_DICTIONARY = {
@@ -101,9 +130,9 @@ JAMO_DIPTHONGS_ARCHAIC = [
         "ᆌ", "ᆍ", "ᆎ", "ᆏ", "ᆐ", "ㆊ", "ㆋ", "ᆓ", "ㆌ", "ᆕ", "ᆖ", "ᆗ",
         "ᆘ", "ᆙ", "ᆚ", "ᆛ", "ᆟ", "ᆠ", "ㆎ"]
 JAMO_COMPOUNDS_ARCHAIC = JAMO_CONSONANT_CLUSTERS_ARCHAIC +\
+                         JAMO_DOUBLE_CONSONANTS_ARCHAIC +\
                          JAMO_DIPTHONGS_ARCHAIC
 JAMO_COMPOUNDS = JAMO_COMPOUNDS_MODERN + JAMO_COMPOUNDS_ARCHAIC
-
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
@@ -148,20 +177,17 @@ def _jamo_char_to_hcj(char):
         hcj_name = re.sub("(?<=HANGUL )(\w+)",
                           "LETTER",
                           _get_unicode_name(char))
-        if hcj_name in _HCJ_REVERSE_LOOKUP.keys():
-            return _HCJ_REVERSE_LOOKUP[hcj_name]
+        try:
+            return unicodedata.lookup(hcj_name)
+        except KeyError:
+            pass
     return char
 
 
 def _get_unicode_name(char):
     """Fetch the unicode name for jamo characters.
     """
-    if char not in _JAMO_TO_NAME.keys() and char not in _HCJ_TO_NAME.keys():
-        raise InvalidJamoError("Not jamo or nameless jamo character", char)
-    else:
-        if is_hcj(char):
-            return _HCJ_TO_NAME[char]
-        return _JAMO_TO_NAME[char]
+    return unicodedata.name(char)
 
 
 def is_jamo(character):
@@ -312,9 +338,12 @@ def hcj_to_jamo(hcj_char, position="vowel"):
                        jamo_class,
                        _get_unicode_name(hcj_char))
     # TODO: add tests that test non entries.
-    if jamo_name in _JAMO_REVERSE_LOOKUP.keys():
-        return _JAMO_REVERSE_LOOKUP[jamo_name]
-    return hcj_char
+    # if jamo_name in _JAMO_REVERSE_LOOKUP.keys():
+    #     return _JAMO_REVERSE_LOOKUP[jamo_name]
+    try:
+        return unicodedata.lookup(jamo_name)
+    except KeyError:
+        return hcj_char
 
 
 def hcj2j(hcj_char, position="vowel"):
@@ -395,6 +424,8 @@ def decompose_jamo(compound):
 
     WARNING: Archaic jamo compounds will raise NotImplementedError.
     """
+    # Consider https://
+    # www.unicode.org/L2/L2006/06310-AuxiliaryHangulDecompositions-5.0.0d3.txt
     if len(compound) != 1:
         raise TypeError("decompose_jamo() expects a single character,",
                         "but received", type(compound), "length",
@@ -444,3 +475,87 @@ def synth_hangul(string):
     """Convert jamo characters in a string into hcj as much as possible."""
     raise NotImplementedError
     return ''.join([''.join(''.join(jamo_to_hcj(_)) for _ in string)])
+
+def decompose_double(jamo_character):
+    """Decompose double jamo 'SSANG' characters into components"""
+    name = unicodedata.name(jamo_character)
+    if 'SSANG' in name and '-' not in name and name != "HANGUL SYLLABLE SSANG":
+        component = unicodedata.lookup("".join(name.split('SSANG')))
+        return (component, component)
+    elif '-' in name:
+        raise InvalidJamoError("decompose_double received cluster, try decompose_cluster instead")
+    else:
+        raise InvalidJamoError("decompose_double did not receive a double jamo cluster")
+
+
+def decompose_cluster(jamo_character):
+    """Decompose double jamo cluster '-' characters into components"""
+    name = unicodedata.name(jamo_character)
+    if '-' not in name:
+        raise InvalidJamoError("character not a hyphen cluster jamo")
+    else:
+        name_parts = name.split()
+        component_parts = name_parts[-1].split('-')
+        components = []
+        flag = False
+        for cp in component_parts:
+            cp_name = " ".join(name_parts[:-1])
+            if 'SSANG' in cp_name:
+                for dbl_part in decompose_double(unicodedata.lookup(cp_name)):
+                    cp_name_tmp = cp_name + " " + unicodedata.name(dbl_part)
+                    components.append(cp_name_tmp)
+                    flag = True
+            else:
+                cp_name += (" " + cp)
+            components.append(unicodedata.lookup(cp_name))
+    if flag:
+        print(components)
+    return components
+
+# temp scratchpad to aid in refactoring
+#  ~ for jc in valid_all_hangul_and_jamo:
+    #  ~ name = unicodedata.name(jc)
+    #  ~ if 'HANGUL SYLLABLE' in name:
+        #  ~ break
+    #  ~ components = [jc]
+    #  ~ if 'SSANG' in name and '-' not in name and name != "HANGUL SYLLABLE SSANG":
+        #  ~ components = decompose_double(jc)
+    #  ~ elif '-' in name:
+        #  ~ components = decompose_cluster(jc)
+    #  ~ elif is_jamo_compound(jc):
+        #  ~ print(jc, name)
+#  ~ #    print('COMPONENTS: ')
+#  ~ #    for c in components:
+#  ~ #       print(unicodedata.name(c),c)
+#  ~ #    print()
+
+        #  ~ input()
+
+    # {"ㄲ": ("ㄱ", "ㄱ"), "ㄸ": ("ㄷ", "ㄷ")}
+    #  ~ if is_jamo_compound(jc):
+        #  ~ print(jc, unicodedata.name(jc), sep = '  ')
+    #  ~ if is_hcj(jc):
+        #  ~ print(unicodedata.name(hcj2j(jc)))
+        #  ~ input()
+
+    #  ~ print('"',jc,'": ("',
+
+        #  ~ character_name = unicodedata.name(character)
+        #  ~ if "-" in character_name:
+            #  ~ return True
+        #  ~ elif "SSANG" in character_name:
+            #  ~ return True
+        #  ~ elif "KAPYEOUN" in character_name:
+            #  ~ return True
+        #  ~ elif "W" in character_name:
+            #  ~ return True
+        #  ~ # CHOSEONG YEORINHIEUH (ᅙ) and JONGSEONG YEORINHIEUH (ᇹ)
+        #  ~ elif "YEORINHIEUH" in character_name:
+            #  ~ return True
+        #  ~ # JUNGSEONG/LETTER OE (ᅬ) and YI (ᅴ)
+        #  ~ elif "YI" in character_name or "OE" in character_name:
+            #  ~ return True
+        #  ~ # LETTER ARAEAE (ㆎ)
+        #  ~ elif "ARAEAE" in character_name:
+            #  ~ return True
+    #  ~ return False
