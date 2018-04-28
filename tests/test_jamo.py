@@ -2,24 +2,13 @@
 """Unit tests for functional tests on Hangul <-> jamo toolkit.
 """
 import unittest
-# ModuleNotFound Error
-# import jamo
+# To resolve ModuleNotFound Error
+import sys
+sys.path.append('../')
+import jamo
 import random
 import itertools
 import io
-
-# +++ TEMPORARY WORKAROUND TO IMPORT JAMO +++
-import os
-import sys
-# set current working directory to location of test_jamo.py to make
-# relative directory ("..") consistent regardless of where the file is
-# launched from
-original_cwd = os.getcwd()
-os.chdir(sys.path[0])
-sys.path.append(os.path.abspath(os.path.join("..")))
-os.chdir(original_cwd)
-import jamo
-# +++ END WORKAROUND TO IMPORT JAMO +++
 
 # See http://www.unicode.org/charts/PDF/U1100.pdf
 _JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
