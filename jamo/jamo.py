@@ -41,7 +41,23 @@ valid_extB = chain((chr(_) for _ in range(0xd7b0, 0xd7c7)),
 valid_hangul = [chr(_) for _ in range(0xac00, 0xd7a4)]
 
 valid_all_hangul_and_jamo = chain(valid_jamo, valid_hcj, valid_extA,
-                                            valid_extB, valid_hangul)
+                                  valid_extB, valid_hangul)
+
+hex_components_dictionary = {}
+with open(os.path.join(_ROOT, "data", "AuxiliaryHangulDecompositions.txt"),
+                       encoding="UTF-8") as file_decompositions:
+    for line in file_decompositions:
+        if line[0] in '0123456789':
+            line_list = line.split()
+            truncated_list = line_list[:line_list.index('#')]
+            hex_components_dictionary[truncated_list[0][:-1]] = truncated_list[1:]
+
+            #  WARNING: some lines decompose into three or four characters
+            #  3200-320D,
+            #  WARNING: some decompositions are commented out!
+            #  320E-321C
+            #  unicodedata.decomposition() should handle those cases
+
 
 # Hangul letters
 JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"]
@@ -133,6 +149,7 @@ JAMO_COMPOUNDS_ARCHAIC = JAMO_CONSONANT_CLUSTERS_ARCHAIC +\
                          JAMO_DOUBLE_CONSONANTS_ARCHAIC +\
                          JAMO_DIPTHONGS_ARCHAIC
 JAMO_COMPOUNDS = JAMO_COMPOUNDS_MODERN + JAMO_COMPOUNDS_ARCHAIC
+
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
@@ -418,7 +435,7 @@ def j2h(lead, vowel, tail=0):
     return jamo_to_hangul(lead, vowel, tail)
 
 
-def decompose_jamo(compound):
+def decompose_jamo_old(compound):
     """Return a tuple of jamo character constituents of a compound.
     Note: Non-compound characters are echoed back.
 
@@ -440,6 +457,60 @@ def decompose_jamo(compound):
     if is_jamo(compound) and not is_jamo_modern(compound):
         raise NotImplementedError
     return JAMO_COMPOUNDS_MODERN_DICTIONARY.get(compound, compound)
+
+def _decompose_jamo_to_hex(jamo):
+    components_string = ""
+    if not is_jamo(jamo):
+        raise InvalidJamoError("Invalid jamo argument.", jamo)
+    in_hex = str(hex(ord(jamo)))[2:]
+    components_string = hex_components_dictionary.get(in_hex, unicodedata.decomposition(jamo))
+    return components_string
+
+
+def decompose_jamo(jamo, verbose=False):
+    if not is_jamo(jamo):
+        raise InvalidJamoError("Invalid jamo argument.", jamo)
+    hex_components = _decompose_jamo_to_hex(jamo)
+    character_components = []
+    for i in hex_components:
+        if i[0] == '<':
+            character_components.append(i)
+        else:
+            tmp_jamo = chr(int(i, 16))
+            if not is_jamo(tmp_jamo):
+                raise InvalidJamoError("Invalid jamo from lookup in \
+                                       _decompose_jamo_to_hex().", jamo)
+            else:
+                character_components.append(tmp_jamo)
+    if verbose == False:
+        to_strip = []
+        for i in character_components:
+            if len(i) != 1:
+                to_strip.append(i)
+            elif not is_jamo(i):
+                to_strip.append(i)
+            elif hex(ord(i)) in ['0x1160', '0x115F']:
+                to_strip.append(i)
+        for i in to_strip:
+            character_components.remove(i)
+    return character_components
+
+
+
+
+# Hangul letters
+JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"]
+
+for i in JAMO_DOUBLE_CONSONANTS_MODERN:
+    # WARNING: Not decomposing ㅆ correctly despite being in the file
+    print(i, decompose_jamo(i), sep="\n")
+    for j in decompose_jamo(i):
+        print('   ' ,j, ord(j))
+        print('       ', decompose_jamo(j))
+        for k in decompose_jamo(j):
+            print(k)
+    print()
+input()
 
 
 def compose_jamo(*parts):
@@ -476,6 +547,7 @@ def synth_hangul(string):
     raise NotImplementedError
     return ''.join([''.join(''.join(jamo_to_hcj(_)) for _ in string)])
 
+
 def decompose_double(jamo_character):
     """Decompose double jamo 'SSANG' characters into components"""
     name = unicodedata.name(jamo_character)
@@ -483,9 +555,11 @@ def decompose_double(jamo_character):
         component = unicodedata.lookup("".join(name.split('SSANG')))
         return (component, component)
     elif '-' in name:
-        raise InvalidJamoError("decompose_double received cluster, try decompose_cluster instead")
+        raise InvalidJamoError("decompose_double received cluster, try \
+                               decompose_cluster instead")
     else:
-        raise InvalidJamoError("decompose_double did not receive a double jamo cluster")
+        raise InvalidJamoError("decompose_double did not receive a double \
+                               jamo cluster")
 
 
 def decompose_cluster(jamo_character):
@@ -512,50 +586,41 @@ def decompose_cluster(jamo_character):
         print(components)
     return components
 
-# temp scratchpad to aid in refactoring
-#  ~ for jc in valid_all_hangul_and_jamo:
-    #  ~ name = unicodedata.name(jc)
-    #  ~ if 'HANGUL SYLLABLE' in name:
-        #  ~ break
-    #  ~ components = [jc]
-    #  ~ if 'SSANG' in name and '-' not in name and name != "HANGUL SYLLABLE SSANG":
-        #  ~ components = decompose_double(jc)
-    #  ~ elif '-' in name:
-        #  ~ components = decompose_cluster(jc)
-    #  ~ elif is_jamo_compound(jc):
-        #  ~ print(jc, name)
-#  ~ #    print('COMPONENTS: ')
-#  ~ #    for c in components:
-#  ~ #       print(unicodedata.name(c),c)
-#  ~ #    print()
 
-        #  ~ input()
+# temp scratchpad to aid in refactoring
+for jc in valid_all_hangul_and_jamo:
+    name = unicodedata.name(jc)
+    if 'HANGUL SYLLABLE' in name:
+        break
+    components = [jc]
+    if 'SSANG' in name and '-' not in name and name != "HANGUL SYLLABLE SSANG":
+        components = decompose_double(jc)
+    elif '-' in name:
+        components = decompose_cluster(jc)
+    elif is_jamo_compound(jc):
+        print(jc, name)
+    print(jc,'  (',name,')  ',sep='')
 
     # {"ㄲ": ("ㄱ", "ㄱ"), "ㄸ": ("ㄷ", "ㄷ")}
-    #  ~ if is_jamo_compound(jc):
-        #  ~ print(jc, unicodedata.name(jc), sep = '  ')
-    #  ~ if is_hcj(jc):
-        #  ~ print(unicodedata.name(hcj2j(jc)))
-        #  ~ input()
+    if is_hcj(jc):
+        print('HCJ')
+    if is_jamo_compound(jc):
+        print('JAMO COMPOUND')
+    if len(components) > 1:
+        print('COMPONENTS: ')
+        for c in components:
+            print(unicodedata.name(c), c)
+        print()
+        input()
 
-    #  ~ print('"',jc,'": ("',
 
-        #  ~ character_name = unicodedata.name(character)
-        #  ~ if "-" in character_name:
-            #  ~ return True
-        #  ~ elif "SSANG" in character_name:
-            #  ~ return True
-        #  ~ elif "KAPYEOUN" in character_name:
-            #  ~ return True
-        #  ~ elif "W" in character_name:
-            #  ~ return True
-        #  ~ # CHOSEONG YEORINHIEUH (ᅙ) and JONGSEONG YEORINHIEUH (ᇹ)
-        #  ~ elif "YEORINHIEUH" in character_name:
-            #  ~ return True
-        #  ~ # JUNGSEONG/LETTER OE (ᅬ) and YI (ᅴ)
-        #  ~ elif "YI" in character_name or "OE" in character_name:
-            #  ~ return True
-        #  ~ # LETTER ARAEAE (ㆎ)
-        #  ~ elif "ARAEAE" in character_name:
-            #  ~ return True
-    #  ~ return False
+"""COMPOUNDS:
+"-" in character_name  # clusters
+"SSANG" in character_name  # doubles
+"KAPYEOUN" in character_name  # KAPYEOUN?
+"W" in character_name  # dipthongs
+"YEORINHIEUH" in character_name  # CHOSEONG / JONGSEONG YEORINHIEUH (ᅙ / ᇹ)
+# JUNGSEONG / LETTER OE (ᅬ) and YI (ᅴ)
+"YI" in character_name or "OE" in character_name
+"ARAEAE" in character_name:  # LETTER ARAEAE (ㆎ)
+"""
