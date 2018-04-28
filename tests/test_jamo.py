@@ -2,13 +2,11 @@
 """Unit tests for functional tests on Hangul <-> jamo toolkit.
 """
 import unittest
-# To avoid ModuleNotFound Error
 import sys
 import random
 import itertools
 import io
-sys.path.append('../')
-import jamo  # noqa
+import jamo
 
 # See http://www.unicode.org/charts/PDF/U1100.pdf
 _JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
