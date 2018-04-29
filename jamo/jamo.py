@@ -437,98 +437,105 @@ def j2h(lead, vowel, tail=0):
     return jamo_to_hangul(lead, vowel, tail)
 
 
-def decompose_jamo_old(compound):
-    """Return a tuple of jamo character constituents of a compound.
-    Note: Non-compound characters are echoed back.
-
-    WARNING: Archaic jamo compounds will raise NotImplementedError.
-    """
-    # Consider https://
-    # www.unicode.org/L2/L2006/06310-AuxiliaryHangulDecompositions-5.0.0d3.txt
-    if len(compound) != 1:
-        raise TypeError("decompose_jamo() expects a single character,",
-                        "but received", type(compound), "length",
-                        len(compound))
-    if compound not in JAMO_COMPOUNDS:
-        # Strict version:
-        # raise TypeError("decompose_jamo() expects a compound jamo,",
-        #                 "but received", compound)
-        return compound
-    if compound in JAMO_COMPOUNDS_ARCHAIC:
-        raise NotImplementedError
-    if is_jamo(compound) and not is_jamo_modern(compound):
-        raise NotImplementedError
-    return JAMO_COMPOUNDS_MODERN_DICTIONARY.get(compound, compound)
-
 def _decompose_jamo_to_hex(jamo):
+    """Return a string of hex codepoints that make up a compound.
+
+    WARNING: Some codepoints are mapped to other compounds in unexpected ways.
+    To achieve a full canonical decomposition, call the recursive version of
+    this function instead: _decompose_jamo_to_hex_recursive().
+
+    Decompositions sourced from unicodedata.decomposition() and Auxiliary
+    Hangul Decompositions 5.0.0d3, at https://
+    www.unicode.org/L2/L2006/06310-AuxiliaryHangulDecompositions-5.0.0d3.txt
+
+    Note: An empty string is returned if no decomposition is available.
+    InvalidJamoError will be raised if 'jamo' is not a jamo character.
+    """
     components_string = ""
     if not is_jamo(jamo):
         raise InvalidJamoError("Invalid jamo argument.", jamo)
-    in_hex = str(hex(ord(jamo)))[2:].upper()
+    codepoint = str(hex(ord(jamo)))[2:].upper()
     components_string = unicodedata.decomposition(jamo)
     if components_string == '':
-        components_string = hex_components_dictionary.get(in_hex, '')
+        components_string = hex_components_dictionary.get(codepoint, '')
     return components_string
 
+
 def _decompose_jamo_to_hex_recursive(jamo):
-    out = ""
-    for i in _decompose_jamo_to_hex(jamo).split():
-        if len(out) > 0:
-            out += ' '
-        if i[0] == '<':
-            out += i
+    """Return a string of hex codepoints that make up a compound.
+
+    Decompositions sourced from unicodedata.decomposition() and Auxiliary
+    Hangul Decompositions 5.0.0d3, at https://
+    www.unicode.org/L2/L2006/06310-AuxiliaryHangulDecompositions-5.0.0d3.txt
+
+    Note: An empty string is returned if no decomposition is available.
+    InvalidJamoError will be raised if 'jamo' is not a jamo character.
+    """
+    decomposition = ""
+    for component in _decompose_jamo_to_hex(jamo).split():
+        if len(decomposition) > 0:
+            decomposition += ' '
+        if component[0] == '<':
+            decomposition += component
         else:
-            tmp = _decompose_jamo_to_hex_recursive(chr(int(i,16)))
-            if tmp == '':
-                out += i
+            intermediate_decomposition = _decompose_jamo_to_hex_recursive(
+                    chr(int(component,16)))
+            if intermediate_decomposition == '':
+                decomposition += component
             else:
-                out += tmp
-    return out
+                decomposition += intermediate_decomposition
+    return decomposition
 
-print('ᄛ', _decompose_jamo_to_hex('ᄛ'))
-print(_decompose_jamo_to_hex_recursive('ᄛ'))
-for i in ['1105','110B']:
-    print(i, chr(int(i, 16)))
-# exit()
 
-#kapyeounrieul, kapyeounmieum still not working
-def decompose_jamo(jamo, verbose=False):
+def decompose_jamo(jamo, verbose=False, strict=False):
+    """Return a tuple of characters that make up a jamo compound.
+
+    Setting verbose to True will include the unicode notations in the
+    decomposition, such as "<free>" or "<circle>".
+
+    The character will be echoed back if no decomposition is available.
+    InvalidJamoError will be raised if 'jamo' is not a jamo character.
+    Setting strict to True will also cause InvalidJamoError to be raised if no
+    decomposition is found.
+
+    Decompositions sourced from unicodedata.decomposition() and Auxiliary
+    Hangul Decompositions 5.0.0d3, at https://
+    www.unicode.org/L2/L2006/06310-AuxiliaryHangulDecompositions-5.0.0d3.txt
+    """
     if not is_jamo(jamo):
-        print(jamo)
         raise InvalidJamoError("Invalid jamo argument.", jamo)
     hex_components = _decompose_jamo_to_hex_recursive(jamo)
-    character_components = ""
-    for i in hex_components.split():
-        if len(character_components) > 0:
-            character_components += ' '
+    character_components = []
+    for hex_component in hex_components.split():
         if i[0] == '<':
-            character_components += i
+            character_components.append(hex_component)
         else:
-            tmp_jamo = chr(int(i, 16))
+            tmp_jamo = chr(int(hex_component, 16))
             if not is_jamo(tmp_jamo):
                 raise InvalidJamoError("Invalid jamo from lookup in \
                                        _decompose_jamo_to_hex().", jamo)
             else:
-                character_components += tmp_jamo
+                character_components.append(tmp_jamo)
     if verbose == False:
         to_strip = []
-        for i in character_components:
-            if len(i) != 1:
-                to_strip.append(i)
-            elif not is_jamo(i):
-                to_strip.append(i)
-            elif hex(ord(i)) in ['0x1160', '0x115F']:
-                to_strip.append(i)
-        for i in to_strip:
-            character_components.replace(i, '')
-            character_components.replace('  ', ' ')
+        for component in character_components:
+            if len(component) != 1:
+                to_strip.append(component)
+            elif not is_jamo(component):
+                to_strip.append(component)
+            elif hex(ord(component)) in ['0x1160', '0x115F']:
+                to_strip.append(component)
+        for component in to_strip:
+            character_components.remove(component)
+    if len(character_components) == 1:
+        character_components = tuple([character_components])
+    else:
+        character_components = tuple(character_components)
+    if strict == True:
+        if character_components == tuple([jamo]):
+            raise InvalidJamoError("No decomposition found for jamo.", jamo)
     return character_components
 
-
-
-
-# Hangul letters
-JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"]
 
 def compose_jamo(*parts):
     """Return the compound jamo for the given jamo input.
@@ -604,31 +611,6 @@ def decompose_cluster(jamo_character):
     return components
 
 
-# temp scratchpad to aid in refactoring
-for jc in valid_all_hangul_and_jamo:
-    name = unicodedata.name(jc)
-    if 'HANGUL SYLLABLE' in name:
-        break
-    #components = [jc]
-    components_hex = _decompose_jamo_to_hex_recursive(jc)
-    components = ""
-    for c in components_hex.split():
-        components += chr(int(c, 16))
-    print(jc,'  (',name,')  ',sep='')
-
-    # {"ㄲ": ("ㄱ", "ㄱ"), "ㄸ": ("ㄷ", "ㄷ")}
-    if is_hcj(jc):
-        print('HCJ')
-    if is_jamo_compound(jc):
-        print('JAMO COMPOUND')
-    if len(components) > 1:
-        print('COMPONENTS: ')
-        for c in components:
-            print(unicodedata.name(c), c)
-        print()
-        input()
-
-
 """COMPOUNDS:
 "-" in character_name  # clusters
 "SSANG" in character_name  # doubles
@@ -638,4 +620,25 @@ for jc in valid_all_hangul_and_jamo:
 # JUNGSEONG / LETTER OE (ᅬ) and YI (ᅴ)
 "YI" in character_name or "OE" in character_name
 "ARAEAE" in character_name:  # LETTER ARAEAE (ㆎ)
+"""
+""" failures:
+HANGUL JUNGSEONG A-EU
+HANGUL JUNGSEONG YA-U
+HANGUL JUNGSEONG YEO-YA
+HANGUL JUNGSEONG O-YA
+HANGUL JUNGSEONG O-YAE
+HANGUL CHOSEONG YEORINHIEUH
+# HANGUL LETTERS don't work, some SSANG and - aren't caught as well.
+# or do they?
+# should any HANGUL SYLLABLE work?
+ퟭ : HANGUL JONGSEONG SSANGSIOS-TIKEUT
+ퟮ : HANGUL JONGSEONG SIOS-PANSIOS
+ퟯ : HANGUL JONGSEONG SIOS-CIEUC
+ᅙ : HANGUL CHOSEONG YEORINHIEUH
+ᇹ : HANGUL JONGSEONG YEORINHIEUH
+ퟝ : HANGUL JONGSEONG KAPYEOUNRIEUL
+ힵ : HANGUL JUNGSEONG U-YEO
+ힶ : HANGUL JUNGSEONG U-I-I
+ힷ : HANGUL JUNGSEONG YU-AE
+ힸ : HANGUL JUNGSEONG YU-O
 """
