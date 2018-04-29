@@ -2,13 +2,13 @@
 """Unit tests for functional tests on Hangul <-> jamo toolkit.
 """
 import unittest
-# To resolve ModuleNotFound Error
-import sys
-sys.path.append('../')
-import jamo
 import random
 import itertools
 import io
+# To resolve ModuleNotFound Error
+import sys
+sys.path.append('../')
+import jamo  # noqa
 
 # See http://www.unicode.org/charts/PDF/U1100.pdf
 _JAMO_LEADS_MODERN = [chr(_) for _ in range(0x1100, 0x1113)]
@@ -495,9 +495,9 @@ class TestJamo(unittest.TestCase):
                  "Incorrect conversion from"
                  "({lead}, {vowel}, {tail}) to "
                  "({hangul}). "
-                 "Got {failure}.").format(lead=lead,
-                                          vowel=vowel,
-                                          tail=tail,
+                 "Got {failure}.").format(lead=jamo.lead,
+                                          vowel=jamo.vowel,
+                                          tail=jamo.tail,
                                           hangul=hangul,
                                           failure=trial)
 

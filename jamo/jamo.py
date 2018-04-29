@@ -45,7 +45,7 @@ valid_all_hangul_and_jamo = chain(valid_jamo, valid_hcj, valid_extA,
 
 hex_components_dictionary = {}
 with open(os.path.join(_ROOT, "data", "AuxiliaryHangulDecompositions.txt"),
-                       encoding="UTF-8") as file_decompositions:
+          encoding="UTF-8") as file_decompositions:
     for line in file_decompositions:
         if line[0] in '13':  # All aux decomps begin with '1xxx;' or '3xxx;'
             line_list = line.split()
@@ -53,7 +53,7 @@ with open(os.path.join(_ROOT, "data", "AuxiliaryHangulDecompositions.txt"),
             truncated_list = line_list[:line_list.index('#')]  # trim comment
             # match string format of unicode.decomposition
             hex_components_dictionary[truncated_list[0]] =\
-                    " ".join(truncated_list[1:])
+                " ".join(truncated_list[1:])
 
             #  WARNING: some lines decompose into three or four characters
             #  3200-320D,
@@ -479,7 +479,7 @@ def _decompose_jamo_to_hex_recursive(jamo):
             decomposition += component
         else:
             intermediate_decomposition = _decompose_jamo_to_hex_recursive(
-                    chr(int(component,16)))
+                    chr(int(component, 16)))
             if intermediate_decomposition == '':
                 decomposition += component
             else:
@@ -507,7 +507,7 @@ def decompose_jamo(jamo, verbose=False, strict=False):
     hex_components = _decompose_jamo_to_hex_recursive(jamo)
     character_components = []
     for hex_component in hex_components.split():
-        if i[0] == '<':
+        if hex_component[0] == '<':
             character_components.append(hex_component)
         else:
             tmp_jamo = chr(int(hex_component, 16))
@@ -516,7 +516,7 @@ def decompose_jamo(jamo, verbose=False, strict=False):
                                        _decompose_jamo_to_hex().", jamo)
             else:
                 character_components.append(tmp_jamo)
-    if verbose == False:
+    if not verbose:
         to_strip = []
         for component in character_components:
             if len(component) != 1:
@@ -531,7 +531,7 @@ def decompose_jamo(jamo, verbose=False, strict=False):
         character_components = tuple([character_components])
     else:
         character_components = tuple(character_components)
-    if strict == True:
+    if strict:
         if character_components == tuple([jamo]):
             raise InvalidJamoError("No decomposition found for jamo.", jamo)
     return character_components
@@ -641,4 +641,6 @@ HANGUL CHOSEONG YEORINHIEUH
 ힶ : HANGUL JUNGSEONG U-I-I
 ힷ : HANGUL JUNGSEONG YU-AE
 ힸ : HANGUL JUNGSEONG YU-O
+Also, HANGUL LETTER SSANGKIYEOK, for example, becomes HANGUL JONGSEONG...
+TODO: fall back on aux decomps if my hyphen / SSANG decomps don't work
 """
