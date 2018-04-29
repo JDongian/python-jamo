@@ -47,17 +47,19 @@ hex_components_dictionary = {}
 with open(os.path.join(_ROOT, "data", "AuxiliaryHangulDecompositions.txt"),
                        encoding="UTF-8") as file_decompositions:
     for line in file_decompositions:
-        if line[0] in '0123456789':
+        if line[0] in '13':  # All aux decomps begin with '1xxx;' or '3xxx;'
             line_list = line.split()
-            truncated_list = line_list[:line_list.index('#')]
-            hex_components_dictionary[truncated_list[0][:-1]] = truncated_list[1:]
+            line_list[0] = line_list[0][:-1]  # trim semicolon
+            truncated_list = line_list[:line_list.index('#')]  # trim comment
+            # match string format of unicode.decomposition
+            hex_components_dictionary[truncated_list[0]] =\
+                    " ".join(truncated_list[1:])
 
             #  WARNING: some lines decompose into three or four characters
             #  3200-320D,
             #  WARNING: some decompositions are commented out!
             #  320E-321C
             #  unicodedata.decomposition() should handle those cases
-
 
 # Hangul letters
 JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"]
@@ -462,26 +464,52 @@ def _decompose_jamo_to_hex(jamo):
     components_string = ""
     if not is_jamo(jamo):
         raise InvalidJamoError("Invalid jamo argument.", jamo)
-    in_hex = str(hex(ord(jamo)))[2:]
-    components_string = hex_components_dictionary.get(in_hex, unicodedata.decomposition(jamo))
+    in_hex = str(hex(ord(jamo)))[2:].upper()
+    components_string = unicodedata.decomposition(jamo)
+    if components_string == '':
+        components_string = hex_components_dictionary.get(in_hex, '')
     return components_string
 
+def _decompose_jamo_to_hex_recursive(jamo):
+    out = ""
+    for i in _decompose_jamo_to_hex(jamo).split():
+        if len(out) > 0:
+            out += ' '
+        if i[0] == '<':
+            out += i
+        else:
+            tmp = _decompose_jamo_to_hex_recursive(chr(int(i,16)))
+            if tmp == '':
+                out += i
+            else:
+                out += tmp
+    return out
 
+print('ᄛ', _decompose_jamo_to_hex('ᄛ'))
+print(_decompose_jamo_to_hex_recursive('ᄛ'))
+for i in ['1105','110B']:
+    print(i, chr(int(i, 16)))
+# exit()
+
+#kapyeounrieul, kapyeounmieum still not working
 def decompose_jamo(jamo, verbose=False):
     if not is_jamo(jamo):
+        print(jamo)
         raise InvalidJamoError("Invalid jamo argument.", jamo)
-    hex_components = _decompose_jamo_to_hex(jamo)
-    character_components = []
-    for i in hex_components:
+    hex_components = _decompose_jamo_to_hex_recursive(jamo)
+    character_components = ""
+    for i in hex_components.split():
+        if len(character_components) > 0:
+            character_components += ' '
         if i[0] == '<':
-            character_components.append(i)
+            character_components += i
         else:
             tmp_jamo = chr(int(i, 16))
             if not is_jamo(tmp_jamo):
                 raise InvalidJamoError("Invalid jamo from lookup in \
                                        _decompose_jamo_to_hex().", jamo)
             else:
-                character_components.append(tmp_jamo)
+                character_components += tmp_jamo
     if verbose == False:
         to_strip = []
         for i in character_components:
@@ -492,7 +520,8 @@ def decompose_jamo(jamo, verbose=False):
             elif hex(ord(i)) in ['0x1160', '0x115F']:
                 to_strip.append(i)
         for i in to_strip:
-            character_components.remove(i)
+            character_components.replace(i, '')
+            character_components.replace('  ', ' ')
     return character_components
 
 
@@ -500,18 +529,6 @@ def decompose_jamo(jamo, verbose=False):
 
 # Hangul letters
 JAMO_DOUBLE_CONSONANTS_MODERN = ["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"]
-
-for i in JAMO_DOUBLE_CONSONANTS_MODERN:
-    # WARNING: Not decomposing ㅆ correctly despite being in the file
-    print(i, decompose_jamo(i), sep="\n")
-    for j in decompose_jamo(i):
-        print('   ' ,j, ord(j))
-        print('       ', decompose_jamo(j))
-        for k in decompose_jamo(j):
-            print(k)
-    print()
-input()
-
 
 def compose_jamo(*parts):
     """Return the compound jamo for the given jamo input.
@@ -592,13 +609,11 @@ for jc in valid_all_hangul_and_jamo:
     name = unicodedata.name(jc)
     if 'HANGUL SYLLABLE' in name:
         break
-    components = [jc]
-    if 'SSANG' in name and '-' not in name and name != "HANGUL SYLLABLE SSANG":
-        components = decompose_double(jc)
-    elif '-' in name:
-        components = decompose_cluster(jc)
-    elif is_jamo_compound(jc):
-        print(jc, name)
+    #components = [jc]
+    components_hex = _decompose_jamo_to_hex_recursive(jc)
+    components = ""
+    for c in components_hex.split():
+        components += chr(int(c, 16))
     print(jc,'  (',name,')  ',sep='')
 
     # {"ㄲ": ("ㄱ", "ㄱ"), "ㄸ": ("ㄷ", "ㄷ")}
