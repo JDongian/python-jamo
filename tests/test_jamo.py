@@ -539,18 +539,19 @@ class TestJamo(unittest.TestCase):
         jamo.
         """
         invalid_hangul = _get_random_hangul(20)
+        invalid_strings = ["ab", "ㄸㄲ"]
         invalid_other = "abABzyZY ,.:;~`―—–/!@#$%^&*()[]{}"
+
+        test_chars_idempotent = ['ㄱ', 'ㄴ']
+        target_chars_idempotent = test_chars_idempotent
 
         # TODO: Expand tests to be more comprehensive, maybe use unicode names.
         test_chars = ["ㄸ", "ㅢ"]
         target_chars = [("ㄷ", "ㄷ"), ("ㅡ", "ㅣ")]
 
-        test_chars_idempotent = list(itertools.chain(invalid_hangul,
-                                     invalid_other))
-        target_chars_idempotent = test_chars_idempotent
-
         # Invalid
-        invalid_strings = ["ab", "ㄸㄲ"]
+        invalid = list(itertools.chain(invalid_hangul, invalid_strings,
+                       invalid_other))
 
         # Not implemented
         not_implemented_archaics = ["ᇑ", "ᇲ", "ퟡ"]
@@ -581,11 +582,11 @@ class TestJamo(unittest.TestCase):
         # Negative tests
         _stderr = jamo.jamo.stderr
         jamo.jamo.stderr = io.StringIO()
-        for test_string in invalid_strings:
+        for test_string in invalid:
             try:
                 jamo.decompose_jamo(test_string)
                 assert False, "Accepted bad input without throwing exception."
-            except (AssertionError, TypeError):
+            except (AssertionError, TypeError, jamo.InvalidJamoError):
                 pass
         for not_implemented_archaic in not_implemented_archaics:
             try:

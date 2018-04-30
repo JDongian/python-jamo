@@ -516,6 +516,22 @@ def decompose_jamo(jamo, verbose=False, strict=False):
                                        _decompose_jamo_to_hex().", jamo)
             else:
                 character_components.append(tmp_jamo)
+    # Correct unexpected character class switching
+    jamo_class = unicodedata.name(jamo).split()[1]
+    # ['<compat>', 'ᄀ', 'ᄀ']
+    for idx in range(len(character_components)):
+        component = character_components[idx]
+        if component[0] != '<':
+            if unicodedata.name(component).split()[1] != jamo_class:
+                test_component_name = unicodedata.name(component).split()
+                test_component_name[1] = jamo_class
+                try:
+                    test_component = unicodedata.lookup(
+                            " ".join(test_component_name))
+                    character_components[idx] = test_component
+                except KeyError:
+                    # If we can't match class anyway, doesn't matter.
+                    pass
     if not verbose:
         to_strip = []
         for component in character_components:
@@ -527,12 +543,38 @@ def decompose_jamo(jamo, verbose=False, strict=False):
                 to_strip.append(component)
         for component in to_strip:
             character_components.remove(component)
-    if len(character_components) == 1:
-        character_components = tuple([character_components])
+    # Echoes character back if nothing found. Should we always return a tuple?
+    if len(character_components) == 0:
+        character_components = jamo
+    elif len(character_components) == 1:
+        character_components = character_components[0]
     else:
         character_components = tuple(character_components)
+    # Final test for SSANG and hyphen compositions not caught by Aux Decomps
+    if character_components == jamo:
+        jamo_name = unicodedata.name(jamo)
+        if ('SSANG' in jamo_name or '-' in jamo_name and jamo_name !=
+                "HANGUL SYLLABLE SSANG"):
+            assert len(jamo_name.split()) == 3
+            prefix = " ".join(jamo_name.split()[:2])
+            forms = [jamo_name.split()[-1]]
+            while 'SSANG' in ''.join(forms) or '-' in ''.join(forms):
+                for part in forms:
+                    if '-' in part:
+                        forms.remove(part)
+                        forms.extend(part.split('-'))
+                        break
+                    if 'SSANG' in part:
+                        forms.remove(part)
+                        part = part.replace('SSANG', '')
+                        forms.extend([part]*2)
+                        break
+            character_components = []
+            for form in forms:
+                character_components.append(unicodedata.lookup(prefix + ' ' +
+                                            form))
     if strict:
-        if character_components == tuple([jamo]):
+        if character_components == jamo:
             raise InvalidJamoError("No decomposition found for jamo.", jamo)
     return character_components
 
