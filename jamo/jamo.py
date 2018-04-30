@@ -263,6 +263,19 @@ def is_hangul_char(character):
 def is_jamo_compound(character):
     """Test if a single character is a compound, i.e., a consonant
     cluster, double consonant, or dipthong.
+
+    COMPOUNDS:
+    "-" in character_name  # clusters
+    "SSANG" in character_name  # doubles
+    "KAPYEOUN" in character_name  # kapyeouns
+    "W" in character_name  # dipthongs
+    # JUNGSEONG / LETTER OE (ᅬ) and YI (ᅴ)
+    "YI" in character_name or "OE" in character_name
+    "ARAEAE" in character_name:  # LETTER ARAEAE (ㆎ)
+
+    NOTE: YEORINHIEU is NOT a compound, the bar indicates the glottal stop,
+    like in consonants, but added to the null ㅇ, without the burst of
+    aspiration from the extra dot in ㅎ.
     """
     if len(character) != 1:
         return False
@@ -279,9 +292,6 @@ def is_jamo_compound(character):
         elif "KAPYEOUN" in character_name:
             return True
         elif "W" in character_name:
-            return True
-        # CHOSEONG YEORINHIEUH (ᅙ) and JONGSEONG YEORINHIEUH (ᇹ)
-        elif "YEORINHIEUH" in character_name:
             return True
         # JUNGSEONG/LETTER OE (ᅬ) and YI (ᅴ)
         elif "YI" in character_name or "OE" in character_name:
@@ -518,7 +528,6 @@ def decompose_jamo(jamo, verbose=False, strict=False):
                 character_components.append(tmp_jamo)
     # Correct unexpected character class switching
     jamo_class = unicodedata.name(jamo).split()[1]
-    # ['<compat>', 'ᄀ', 'ᄀ']
     for idx in range(len(character_components)):
         component = character_components[idx]
         if component[0] != '<':
@@ -651,38 +660,3 @@ def decompose_cluster(jamo_character):
     if flag:
         print(components)
     return components
-
-
-"""COMPOUNDS:
-"-" in character_name  # clusters
-"SSANG" in character_name  # doubles
-"KAPYEOUN" in character_name  # KAPYEOUN?
-"W" in character_name  # dipthongs
-"YEORINHIEUH" in character_name  # CHOSEONG / JONGSEONG YEORINHIEUH (ᅙ / ᇹ)
-# JUNGSEONG / LETTER OE (ᅬ) and YI (ᅴ)
-"YI" in character_name or "OE" in character_name
-"ARAEAE" in character_name:  # LETTER ARAEAE (ㆎ)
-"""
-""" failures:
-HANGUL JUNGSEONG A-EU
-HANGUL JUNGSEONG YA-U
-HANGUL JUNGSEONG YEO-YA
-HANGUL JUNGSEONG O-YA
-HANGUL JUNGSEONG O-YAE
-HANGUL CHOSEONG YEORINHIEUH
-# HANGUL LETTERS don't work, some SSANG and - aren't caught as well.
-# or do they?
-# should any HANGUL SYLLABLE work?
-ퟭ : HANGUL JONGSEONG SSANGSIOS-TIKEUT
-ퟮ : HANGUL JONGSEONG SIOS-PANSIOS
-ퟯ : HANGUL JONGSEONG SIOS-CIEUC
-ᅙ : HANGUL CHOSEONG YEORINHIEUH
-ᇹ : HANGUL JONGSEONG YEORINHIEUH
-ퟝ : HANGUL JONGSEONG KAPYEOUNRIEUL
-ힵ : HANGUL JUNGSEONG U-YEO
-ힶ : HANGUL JUNGSEONG U-I-I
-ힷ : HANGUL JUNGSEONG YU-AE
-ힸ : HANGUL JUNGSEONG YU-O
-Also, HANGUL LETTER SSANGKIYEOK, for example, becomes HANGUL JONGSEONG...
-TODO: fall back on aux decomps if my hyphen / SSANG decomps don't work
-"""
