@@ -621,3 +621,30 @@ def synth_hangul(string):
     """Convert jamo characters in a string into hcj as much as possible."""
     raise NotImplementedError
     return ''.join([''.join(''.join(jamo_to_hcj(_)) for _ in string)])
+
+
+# {
+#   "\u3131": ["\u1101", "\u3232"],
+# }
+
+out = "{\n"
+for c in valid_all_hangul_and_jamo:
+    try:
+        bits = decompose_jamo(c, verbose=True)
+        out += "  " + '"\\u' + str(hex(ord(c)))[2:] + '": '
+        for idx, bit in enumerate(bits):
+            if bit[0] == '<':
+                strbit = '"' + bit + '"'
+            else:
+                strbit = '"\\u' + str(hex(ord(bit)))[2:] + '"'
+            if idx == 0:
+                out += '['
+            out += strbit
+            if idx < len(bits) - 1:
+                out += ', '
+            if idx == len(bits) - 1:
+                out += '],\n'
+    except InvalidJamoError:
+        pass # print(hex(ord(c)))
+out += "}"
+print(out)
