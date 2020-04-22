@@ -47,8 +47,6 @@ class InvalidJamoError(Exception):
     def __init__(self, message, jamo):
         super(InvalidJamoError, self).__init__(message)
         self.jamo = hex(ord(jamo))
-        print("Could not parse jamo: U+{code}".format(code=self.jamo[2:]),
-              file=stderr)
 
 
 def _hangul_char_to_jamo(syllable):
