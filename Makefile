@@ -23,7 +23,7 @@ lint:
 	flake8 --ignore=E123,E501,F401 $(PROJECT)
 
 format:
-	autopep8 -r --in-place $(PROJECT)
+	autopep8 -r --in-place --exit-code $(PROJECT)
 
 test:
 	nose2 --with-coverage --coverage=$(PROJECT)

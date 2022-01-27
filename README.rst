@@ -1,9 +1,9 @@
 Jamo: Hangul Character Analysis
 ===============================
 
-.. image:: https://travis-ci.org/JDongian/python-jamo.svg?branch=master
-    :target: https://travis-ci.org/JDongian/python-jamo
-    
+.. image:: https://github.com/JDongian/python-jamo/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/JDongian/python-jamo/actions/workflows/ci.yml
+
 .. image:: https://readthedocs.org/projects/python-jamo/badge/?version=latest
     :target: https://readthedocs.org/projects/python-jamo/?badge=latest
 
