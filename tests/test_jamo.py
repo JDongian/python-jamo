@@ -2,7 +2,6 @@
 """Unit tests for functional tests on Hangul <-> jamo toolkit.
 """
 import unittest
-import sys
 import random
 import itertools
 import io

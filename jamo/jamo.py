@@ -12,7 +12,6 @@ from sys import stderr
 from itertools import chain
 import json
 import re
-import unicodedata
 
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
