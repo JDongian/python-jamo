@@ -22,6 +22,9 @@ clean:
 lint:
 	flake8 --ignore=E123,E501,F401 $(PROJECT)
 
+format:
+	autopep8 -r --in-place $(PROJECT)
+
 test:
 	nosetests --with-coverage --cover-package=$(PROJECT)
 
