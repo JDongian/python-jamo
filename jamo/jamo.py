@@ -12,7 +12,6 @@ from sys import stderr
 from itertools import chain
 import json
 import re
-import unicodedata
 
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -44,6 +43,7 @@ JAMO_COMPOUNDS = _JAMO_TO_COMPONENTS.keys()
 
 class InvalidJamoError(Exception):
     """jamo is a U+11xx codepoint."""
+
     def __init__(self, message, jamo):
         super(InvalidJamoError, self).__init__(message)
         self.jamo = hex(ord(jamo))
@@ -80,7 +80,7 @@ def _jamo_to_hangul_char(lead, vowel, tail=0):
 
 def _jamo_char_to_hcj(char):
     if is_jamo(char):
-        hcj_name = re.sub("(?<=HANGUL )(\w+)",
+        hcj_name = re.sub(r"(?<=HANGUL )(\w+)",
                           "LETTER",
                           _get_unicode_name(char))
         if hcj_name in _HCJ_REVERSE_LOOKUP.keys():
@@ -224,7 +224,7 @@ def hcj_to_jamo(hcj_char, position="vowel"):
         jamo_class = "JONGSEONG"
     else:
         raise InvalidJamoError("No mapping from input to jamo.", hcj_char)
-    jamo_name = re.sub("(?<=HANGUL )(\w+)",
+    jamo_name = re.sub(r"(?<=HANGUL )(\w+)",
                        jamo_class,
                        _get_unicode_name(hcj_char))
     # TODO: add tests that test non entries.
@@ -335,7 +335,7 @@ def compose_jamo(*parts):
     # NOTE: Relies on hcj_to_jamo not strictly requiring "position" arg.
     for p in parts:
         if not (type(p) == str and len(p) == 1 and 2 <= len(parts) <= 3):
-            raise TypeError("compose_jamo() expected 2-3 single characters " +
+            raise TypeError("compose_jamo() expected 2-3 single characters "
                             "but received " + str(parts),
                             '\x00')
     hcparts = [j2hcj(_) for _ in parts]
@@ -343,9 +343,8 @@ def compose_jamo(*parts):
     if hcparts in _COMPONENTS_REVERSE_LOOKUP:
         return _COMPONENTS_REVERSE_LOOKUP[hcparts]
     raise InvalidJamoError(
-            "Could not synthesize characters to compound: " + ", ".join(
-                    str(_) + "(U+" + str(hex(ord(_)))[2:] +
-                    ")" for _ in parts), '\x00')
+        "Could not synthesize characters to compound: " + ", ".join(
+            str(_) + "(U+" + str(hex(ord(_)))[2:] + ")" for _ in parts), '\x00')
 
 
 def synth_hangul(string):

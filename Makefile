@@ -22,8 +22,11 @@ clean:
 lint:
 	flake8 --ignore=E123,E501,F401 $(PROJECT)
 
+format:
+	autopep8 -r --in-place --exit-code $(PROJECT)
+
 test:
-	nosetests --with-coverage --cover-package=$(PROJECT)
+	nose2 --with-coverage --coverage=$(PROJECT)
 
 dist/jamo-$(JAMO_VERSION).tar.gz:
 	$(PYTHON) setup.py sdist

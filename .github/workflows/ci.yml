@@ -1,0 +1,63 @@
+name: Test and lint
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          [
+            "pypy-3.7",
+            "pypy-3.8",
+            "3.7",
+            "3.8",
+            "3.9",
+            "3.10",
+          ]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install tox
+        run: |
+          pip install tox tox-gh-actions
+
+      - name: Run tests with tox
+        run: tox
+
+  lint:
+    name: Run linters and formatters
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+
+      - name: Run linters
+        run: make lint
+
+      - name: Run code formatter
+        run: make format
